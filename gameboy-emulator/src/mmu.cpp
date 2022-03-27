@@ -1,4 +1,4 @@
-#include "include/mmu.h"
+#include "../include/mmu.h"
 
 uint8_t MMU::byte() {
     uint8_t value = cartridge.at(cpu.r._pc);

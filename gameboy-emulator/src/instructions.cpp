@@ -1,8 +1,7 @@
 #include <stdint.h>
 
-#include "cpu.h"
-#include "alu.h"
-#include "registers.h"
+#include "../include/cpu.h"
+#include "../include/registers.h"
 
 __uint128_t CPU::opcode(uint8_t opcode) {
 
@@ -212,155 +211,155 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             return 0;
             break;
 
-        /// UNIMPLEMENTED Row 0x40-0x4F
+        /// Row 0x40-0x4F
         case 0x40:
-            return 0;
-            break;
+            r._b = r._b;
+            return 1;
         case 0x41:
-            return 0;
-            break;
+            r._b = r._c;
+            return 1;
         case 0x42:
-            return 0;
-            break;
+            r._b = r._d;
+            return 1;
         case 0x43:
-            return 0;
-            break;
+            r._b = r._e;
+            return 1;
         case 0x44:
-            return 0;
-            break;
+            r._b = r._h;
+            return 1;
         case 0x45:
-            return 0;
-            break;
+            r._b = r._l;
+            return 1;
         case 0x46:
-            return 0;
-            break;
+            r._b = mmu.read(r.hl());
+            return 2;
         case 0x47:
-            return 0;
-            break;
+            r._b = r._a;
+            return 1;
         case 0x48:
-            return 0;
-            break;
+            r._c = r._b;
+            return 1;
         case 0x49:
-            return 0;
-            break;
+            r._c = r._c;
+            return 1;
         case 0x4A:
-            return 0;
-            break;
+            r._c = r._d;
+            return 1;
         case 0x4B:
-            return 0;
-            break;
+            r._c = r._e;
+            return 1;
         case 0x4C:
-            return 0;
-            break;
+            r._c = r._h;
+            return 1;
         case 0x4D:
-            return 0;
-            break;
+            r._c = r._l;
+            return 1;
         case 0x4E:
-            return 0;
-            break;
+            r._c = mmu.read(r.hl());
+            return 2;
         case 0x4F:
-            return 0;
-            break;
+            r._c = r._a;
+            return 1;
 
-        /// UNIMPLEMENTED Row 0x50-0x5F
+        /// Row 0x50-0x5F
         case 0x50:
-            return 0;
-            break;
+            r._d = r._b;
+            return 1;
         case 0x51:
-            return 0;
-            break;
+            r._d = r._c;
+            return 1;
         case 0x52:
-            return 0;
-            break;
+            r._d = r._d;
+            return 1;
         case 0x53:
-            return 0;
-            break;
+            r._d = r._e;
+            return 1;
         case 0x54:
-            return 0;
-            break;
+            r._d = r._h;
+            return 1;
         case 0x55:
-            return 0;
-            break;
+            r._d = r._l;
+            return 1;
         case 0x56:
-            return 0;
-            break;
+            r._d = mmu.read(r.hl());
+            return 2;
         case 0x57:
-            return 0;
-            break;
+            r._d = r._a;
+            return 1;
         case 0x58:
-            return 0;
-            break;
+            r._e = r._b;
+            return 1;
         case 0x59:
-            return 0;
-            break;
+            r._e = r._c;
+            return 1;
         case 0x5A:
-            return 0;
-            break;
+            r._e = r._d;
+            return 1;
         case 0x5B:
-            return 0;
-            break;
+            r._e = r._e;
+            return 1;
         case 0x5C:
-            return 0;
-            break;
+            r._e = r._h;
+            return 1;
         case 0x5D:
-            return 0;
-            break;
+            r._e = r._l;
+            return 1;
         case 0x5E:
-            return 0;
-            break;
+            r._e = mmu.read(r.hl());
+            return 2;
         case 0x5F:
-            return 0;
-            break;
+            r._e = r._a;
+            return 1;
 
-        /// UNIMPLEMENTED Row 0x60-0x6F
+        /// Row 0x60-0x6F
         case 0x60:
-            return 0;
-            break;
+            r._h = r._b;
+            return 1;
         case 0x61:
-            return 0;
-            break;
+            r._h = r._c;
+            return 1;
         case 0x62:
-            return 0;
-            break;
+            r._h = r._d;
+            return 1;
         case 0x63:
-            return 0;
-            break;
+            r._h = r._e;
+            return 1;
         case 0x64:
-            return 0;
-            break;
+            r._h = r._h;
+            return 1;
         case 0x65:
-            return 0;
-            break;
+            r._h = r._l;
+            return 1;
         case 0x66:
-            return 0;
-            break;
+            r._h = mmu.read(r.hl());
+            return 2;
         case 0x67:
-            return 0;
-            break;
+            r._h = r._a;
+            return 1;
         case 0x68:
-            return 0;
-            break;
+            r._l = r._b;
+            return 1;
         case 0x69:
-            return 0;
-            break;
+            r._l = r._c;
+            return 1;
         case 0x6A:
-            return 0;
-            break;
+            r._l = r._d;
+            return 1;
         case 0x6B:
-            return 0;
-            break;
+            r._l = r._e;
+            return 1;
         case 0x6C:
-            return 0;
-            break;
+            r._l = r._h;
+            return 1;
         case 0x6D:
-            return 0;
-            break;
+            r._l = r._l;
+            return 1;
         case 0x6E:
-            return 0;
-            break;
+            r._l = mmu.read(r.hl());
+            return 2;
         case 0x6F:
-            return 0;
-            break;
+            r._l = r._a;
+            return 1;
 
         /// UNIMPLEMENTED Row 0x70-0x7F
         case 0x70:
