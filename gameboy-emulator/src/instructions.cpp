@@ -5,7 +5,6 @@
 
 __uint128_t CPU::opcode(uint8_t opcode) {
 
-
     if (cb) { cb = false; return opcode_cb(opcode); }
 
     switch (opcode) {
@@ -61,155 +60,203 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._a = (r._a >> 1) | (r._a << 7);
             return 1;
 
-        /// UNIMPLEMENTED Row 0x10-0x1F
+        /// Row 0x10-0x1F
         case 0x10:
-            return 0;
-            break;
+            stop();
+            return 1;
         case 0x11:
-            return 0;
-            break;
+            r.de(mmu.word());
+            return 3;
         case 0x12:
-            return 0;
-            break;
+            mmu.write(r.de(), r._a);
+            return 2;
         case 0x13:
-            return 0;
-            break;
+            r.de(r.de() + 1);
+            return 2;
         case 0x14:
-            return 0;
-            break;
+            r._d = inc(r._d);
+            return 1;
         case 0x15:
-            return 0;
-            break;
+            r._d = dec(r._d);
+            return 1;
         case 0x16:
-            return 0;
-            break;
+            r._d = mmu.byte();
+            return 2;
         case 0x17:
-            return 0;
-            break;
+            r._a = rl(r._a);
+            r.flag_z(false);
+            return 1;
         case 0x18:
-            return 0;
-            break;
+            jr((int8_t) mmu.byte());
+            return 3;
         case 0x19:
-            return 0;
-            break;
+            hl_add(r.de());
+            return 2;
         case 0x1A:
-            return 0;
-            break;
+            r._a = mmu.read(r.de());
+            return 2;
         case 0x1B:
-            return 0;
-            break;
+            r.de(r.de() - 1);
+            return 2;
         case 0x1C:
-            return 0;
-            break;
+            r._e = inc(r._e);
+            return 1;
         case 0x1D:
-            return 0;
-            break;
+            r._e = dec(r._e);
+            return 1;
         case 0x1E:
-            return 0;
-            break;
+            r._e = mmu.byte();
+            return 2;
         case 0x1F:
-            return 0;
-            break;
+            r._a = rr(r._a);
+            r.flag_z(false);
+            return 1;
 
-        /// UNIMPLEMENTED Row 0x20-0x2F
+        /// Row 0x20-0x2F
         case 0x20:
-            return 0;
-            break;
+            int8_t s8 = mmu.byte();
+            if (r.flag_z()) {
+                jr(s8);
+                return 3;
+            }
+            return 2;
         case 0x21:
-            return 0;
-            break;
+            r.hl(mmu.word());
+            return 3;
         case 0x22:
-            return 0;
-            break;
+            mmu.write(r.hl(), r._a);
+            r.hl(r.hl() - 1);
+            return 2;
         case 0x23:
-            return 0;
-            break;
+            r.hl(r.hl() + 1);
+            return 2;
         case 0x24:
-            return 0;
-            break;
+            r._h = inc(r._h);
+            return 1;
         case 0x25:
-            return 0;
-            break;
+            r._h = dec(r._h);
+            return 1;
         case 0x26:
-            return 0;
-            break;
+            r._h = mmu.byte();
+            return 2;
         case 0x27:
-            return 0;
-            break;
-        case 0x28:
-            return 0;
-            break;
-        case 0x29:
-            return 0;
-            break;
-        case 0x2A:
-            return 0;
-            break;
-        case 0x2B:
-            return 0;
-            break;
-        case 0x2C:
-            return 0;
-            break;
-        case 0x2D:
-            return 0;
-            break;
-        case 0x2E:
-            return 0;
-            break;
-        case 0x2F:
-            return 0;
-            break;
+            uint8_t adj;
+            
+            if (r.flag_c()) {
+                adj |- 0x60;
+            }
 
-        /// UNIMPLEMENTED Row 0x30-0x3F
+            if (r.flag_h()) {
+                adj |- 0x06;
+            }
+
+            if (!r.flag_n()) {
+                if ((r._a & 0x0F) > 0x09) adj |= 0x06;
+                if (r._a > 0x99) adj |= 0x60;
+            }
+
+            r._a += adj;
+
+            r.flag_c(adj >= 0x80);
+            r.flag_h(false);
+            r.flag_z(r._a == 0);
+
+            return 1;
+        case 0x28:
+            int8_t s8 = mmu.byte();
+            if (!r.flag_z()) {
+                jr(s8);
+                return 3;
+            }
+            return 2;
+        case 0x29:
+            hl_add(r.hl());
+            return 2;
+        case 0x2A:
+            r._a = mmu.read(r.hl());
+            r.hl(r.hl() - 1);
+            return 2;
+        case 0x2B:
+            r.hl(r.hl() - 1);
+            return 2;
+        case 0x2C:
+            r._l = inc(r._l);
+            return 1;
+        case 0x2D:
+            r._l = dec(r._l);
+            return 1;
+        case 0x2E:
+            r._l = mmu.byte();
+            return 2;
+        case 0x2F:
+            r._a = !r._a;
+            r.flag_h(true);
+            r.flag_n(true);
+            return 1;
+
+        /// Row 0x30-0x3F
         case 0x30:
-            return 0;
-            break;
+            int8_t s8 = (int8_t) mmu.byte();
+            if (!r.flag_c()) {
+                jr(s8);
+                return 3;
+            }
+            return 2;
         case 0x31:
-            return 0;
-            break;
+            r._sp = mmu.word();
+            return 3;
         case 0x32:
-            return 0;
-            break;
+            mmu.write(r.hl(), r._a);
+            r.hl(r.hl() - 1);
+            return 2;
         case 0x33:
-            return 0;
-            break;
+            r._pc += 1;
+            return 2;
         case 0x34:
-            return 0;
-            break;
+            mmu.write(r.hl(), inc(mmu.read(r.hl())));
+            return 3;
         case 0x35:
-            return 0;
-            break;
+            mmu.write(r.hl(), dec(mmu.read(r.hl())));
+            return 3;
         case 0x36:
-            return 0;
-            break;
+            mmu.write(r.hl(), mmu.byte());
+            return 3;
         case 0x37:
-            return 0;
-            break;
+            r.flag_c(true);
+            r.flag_h(false);
+            r.flag_n(false);
+            return 1;
         case 0x38:
-            return 0;
-            break;
+            int8_t s8 = (int8_t) mmu.byte();
+            if (r.flag_c()) {
+                jr(s8);
+                return 3;
+            }
+            return 2;
         case 0x39:
-            return 0;
-            break;
+            hl_add(r._sp);
+            return 2;
         case 0x3A:
-            return 0;
-            break;
+            r._a = mmu.read(r.hl());
+            r.hl(r.hl() - 1);
+            return 2;
         case 0x3B:
-            return 0;
-            break;
+            r._sp -= 1;
+            return 2;
         case 0x3C:
-            return 0;
-            break;
+            r._a = inc(r._a);
+            return 1;
         case 0x3D:
-            return 0;
-            break;
+            r._a = dec(r._a);
+            return 1;
         case 0x3E:
-            return 0;
-            break;
+            r._a = mmu.byte();
+            return 2;
         case 0x3F:
-            return 0;
-            break;
+            r.flag_c(!r.flag_c());
+            r.flag_n(false);
+            r.flag_h(false);
+            return 1;
 
         /// Row 0x40-0x4F
         case 0x40:
@@ -361,458 +408,467 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._l = r._a;
             return 1;
 
-        /// UNIMPLEMENTED Row 0x70-0x7F
+        /// Row 0x70-0x7F
         case 0x70:
-            return 0;
-            break;
+            mmu.write(r.hl(), r._b);
+            return 2;
         case 0x71:
-            return 0;
-            break;
+            mmu.write(r.hl(), r._c);
+            return 2;
         case 0x72:
-            return 0;
-            break;
+            mmu.write(r.hl(), r._d);
+            return 2;
         case 0x73:
-            return 0;
-            break;
+            mmu.write(r.hl(), r._e);
+            return 2;
         case 0x74:
-            return 0;
-            break;
+            mmu.write(r.hl(), r._h);
+            return 2;
         case 0x75:
-            return 0;
-            break;
+            mmu.write(r.hl(), r._l);
+            return 2;
         case 0x76:
-            return 0;
-            break;
+            halt();
+            return 1;
         case 0x77:
-            return 0;
-            break;
+            mmu.write(r.hl(), r._a);
+            return 2;
         case 0x78:
-            return 0;
-            break;
+            r._a = r._b;
+            return 1;
         case 0x79:
-            return 0;
-            break;
+            r._a = r._c;
+            return 1;
         case 0x7A:
-            return 0;
-            break;
+            r._a = r._d;
+            return 1;
         case 0x7B:
-            return 0;
-            break;
+            r._a = r._e;
+            return 1;
         case 0x7C:
-            return 0;
-            break;
+            r._a = r._h;
+            return 1;
         case 0x7D:
-            return 0;
-            break;
+            r._a = r._l;
+            return 1;
         case 0x7E:
-            return 0;
-            break;
+            r._a = mmu.read(r.hl());
+            return 2;
         case 0x7F:
-            return 0;
-            break;
-
-        /// UNIMPLEMENTED Row 0x80-0x8F
+            r._a = r._a;
+            return 1;
+        
+        /// Row 0x80-0x8F
         case 0x80:
-            return 0;
-            break;
+            a_add(r._b);
+            return 1;
         case 0x81:
-            return 0;
-            break;
+            a_add(r._c);
+            return 1;
         case 0x82:
-            return 0;
-            break;
+            a_add(r._d);
+            return 1;
         case 0x83:
-            return 0;
-            break;
+            a_add(r._e);
+            return 1;
         case 0x84:
-            return 0;
-            break;
+            a_add(r._h);
+            return 1;
         case 0x85:
-            return 0;
-            break;
+            a_add(r._l);
+            return 1;
         case 0x86:
-            return 0;
-            break;
+            a_add(mmu.read(r.hl()));
+            return 2;
         case 0x87:
-            return 0;
-            break;
+            a_add(r._a);
+            return 1;
         case 0x88:
-            return 0;
-            break;
+            adc(r._b);
+            return 1;
         case 0x89:
-            return 0;
-            break;
+            adc(r._c);
+            return 1;
         case 0x8A:
-            return 0;
-            break;
+            adc(r._d);
+            return 1;
         case 0x8B:
-            return 0;
-            break;
+            adc(r._e);
+            return 1;
         case 0x8C:
-            return 0;
-            break;
+            adc(r._h);
+            return 1;
         case 0x8D:
-            return 0;
-            break;
+            adc(r._l);
+            return 1;
         case 0x8E:
-            return 0;
-            break;
+            adc(mmu.read(r.hl()));
+            return 2;
         case 0x8F:
-            return 0;
-            break;
+            adc(r._a);
+            return 1;
 
-        /// UNIMPLEMENTED Row 0x90-0x9F
+        /// Row 0x90-0x9F
         case 0x90:
-            return 0;
-            break;
+            a_sub(r._b);
+            return 1;
         case 0x91:
-            return 0;
-            break;
+            a_sub(r._c);
+            return 1;
         case 0x92:
-            return 0;
-            break;
+            a_sub(r._d);
+            return 1;
         case 0x93:
-            return 0;
-            break;
+            a_sub(r._e);
+            return 1;
         case 0x94:
-            return 0;
-            break;
+            a_sub(r._h);
+            return 1;
         case 0x95:
-            return 0;
-            break;
+            a_sub(r._l);
+            return 1;
         case 0x96:
-            return 0;
-            break;
+            a_sub(mmu.read(r.hl()));
+            return 2;
         case 0x97:
-            return 0;
-            break;
+            a_sub(r._a);
+            return 1;
         case 0x98:
-            return 0;
-            break;
+            sbc(r._b);
+            return 1;
         case 0x99:
-            return 0;
-            break;
+            sbc(r._c);
+            return 1;
         case 0x9A:
-            return 0;
-            break;
+            sbc(r._d);
+            return 1;
         case 0x9B:
-            return 0;
-            break;
+            sbc(r._e);
+            return 1;
         case 0x9C:
-            return 0;
-            break;
+            sbc(r._h);
+            return 1;
         case 0x9D:
-            return 0;
-            break;
+            sbc(r._l);
+            return 1;
         case 0x9E:
-            return 0;
-            break;
+            sbc(mmu.read(r.hl()));
+            return 2;
         case 0x9F:
-            return 0;
-            break;
+            sbc(r._a);
+            return 1;
 
-        /// UNIMPLEMENTED Row 0xA0-0xAF
+        /// Row 0xA0-0xAF
         case 0xA0:
-            return 0;
-            break;
+            a_and(r._b);
+            return 1;
         case 0xA1:
-            return 0;
-            break;
+            a_and(r._c);
+            return 1;
         case 0xA2:
-            return 0;
-            break;
+            a_and(r._d);
+            return 1;
         case 0xA3:
-            return 0;
-            break;
+            a_and(r._e);
+            return 1;
         case 0xA4:
-            return 0;
-            break;
+            a_and(r._h);
+            return 1;
         case 0xA5:
-            return 0;
-            break;
+            a_and(r._l);
+            return 1;
         case 0xA6:
-            return 0;
-            break;
+            a_and(mmu.read(r.hl()));
+            return 2;
         case 0xA7:
-            return 0;
-            break;
+            a_and(r._a);
+            return 1;
         case 0xA8:
-            return 0;
-            break;
+            a_xor(r._b);
+            return 1;
         case 0xA9:
-            return 0;
-            break;
+            a_xor(r._c);
+            return 1;
         case 0xAA:
-            return 0;
-            break;
+            a_xor(r._d);
+            return 1;
         case 0xAB:
-            return 0;
-            break;
+            a_xor(r._e);
+            return 1;
         case 0xAC:
-            return 0;
-            break;
+            a_xor(r._h);
+            return 1;
         case 0xAD:
-            return 0;
-            break;
+            a_xor(r._l);
+            return 1;
         case 0xAE:
-            return 0;
-            break;
+            a_xor(mmu.read(r.hl()));
+            return 2;
         case 0xAF:
-            return 0;
-            break;
+            a_xor(r._a);
+            return 1;
 
-        /// UNIMPLEMENTED Row 0xB0-0xBF
+        /// Row 0xB0-0xBF
         case 0xB0:
-            return 0;
-            break;
+            a_or(r._b);
+            return 1;
         case 0xB1:
-            return 0;
-            break;
+            a_or(r._c);
+            return 1;
         case 0xB2:
-            return 0;
-            break;
+            a_or(r._d);
+            return 1;
         case 0xB3:
-            return 0;
-            break;
+            a_or(r._e);
+            return 1;
         case 0xB4:
-            return 0;
-            break;
+            a_or(r._h);
+            return 1;
         case 0xB5:
-            return 0;
-            break;
+            a_or(r._l);
+            return 1;
         case 0xB6:
-            return 0;
-            break;
+            a_or(mmu.read(r.hl()));
+            return 2;
         case 0xB7:
-            return 0;
-            break;
+            a_or(r._a);
+            return 1;
         case 0xB8:
-            return 0;
-            break;
+            a_cp(r._b);
+            return 1;
         case 0xB9:
-            return 0;
-            break;
+            a_cp(r._c);
+            return 1;
         case 0xBA:
-            return 0;
-            break;
+            a_cp(r._d);
+            return 1;
         case 0xBB:
-            return 0;
-            break;
+            a_cp(r._e);
+            return 1;
         case 0xBC:
-            return 0;
-            break;
+            a_cp(r._h);
+            return 1;
         case 0xBD:
-            return 0;
-            break;
+            a_cp(r._l);
+            return 1;
         case 0xBE:
-            return 0;
-            break;
+            a_cp(mmu.read(r.hl()));
+            return 2;
         case 0xBF:
-            return 0;
-            break;
+            a_cp(r._a);
+            return 1;
 
-        /// UNIMPLEMENTED Row 0xC0-0xCF
+        /// Row 0xC0-0xCF
         case 0xC0:
-            return 0;
-            break;
+            if (!r.flag_z()) {
+                ret();
+                return 5;
+            }
+            return 2;
         case 0xC1:
-            return 0;
-            break;
+            r.bc(pop_word());
+            return 3;
         case 0xC2:
-            return 0;
-            break;
+            uint16_t a16 = mmu.word();
+            if (!r.flag_z()) {
+                jp(a16);
+                return 4;
+            }
+            return 3;
         case 0xC3:
-            return 0;
-            break;
+            jp(mmu.word());
+            return 4;
         case 0xC4:
-            return 0;
-            break;
+            uint16_t v = mmu.word();
+            if (!r.flag_z()) {
+                call(v);
+                return 6;
+            }
+            return 3;
         case 0xC5:
-            return 0;
-            break;
+            push(r.bc());
+            return 4;
         case 0xC6:
-            return 0;
-            break;
+            a_add(mmu.byte());
+            return 2;
         case 0xC7:
-            return 0;
-            break;
+            rst(0x00);
+            return 4;
         case 0xC8:
-            return 0;
-            break;
+            if (r.flag_z()) {
+                ret();
+                return 5;
+            }
+            return 2;
         case 0xC9:
-            return 0;
-            break;
+            ret();
+            return 4;
         case 0xCA:
-            return 0;
-            break;
-        case 0xCB:
-            return 0;
-            break;
+            uint16_t a16 = mmu.word();
+            if (r.flag_z()) {
+                jp(a16);
+                return 4;
+            }
+            return 3;
         case 0xCC:
-            return 0;
-            break;
+            uint16_t v = mmu.word();
+            if (r.flag_z()) {
+                call(v);
+                return 6;
+            }
+            return 3;
         case 0xCD:
-            return 0;
-            break;
+            call(mmu.word());
+            return 6;
         case 0xCE:
-            return 0;
-            break;
+            adc(mmu.byte());
+            return 2;
         case 0xCF:
-            return 0;
-            break;
+            rst(0x08);
+            return 4;
 
-        /// UNIMPLEMENTED Row 0xD0-0xDF
+        /// Row 0xD0-0xDF
         case 0xD0:
-            return 0;
-            break;
+            if (!r.flag_c()) {
+                ret();
+                return 5;
+            }
+            return 2;
         case 0xD1:
-            return 0;
-            break;
+            r.de(pop_word());
+            return 3;
         case 0xD2:
-            return 0;
-            break;
-        case 0xD3:
-            return 0;
-            break;
+            uint16_t a16 = mmu.word();
+            if (!r.flag_c()) {
+                jp(a16);
+                return 4;
+            }
+            return 3;
         case 0xD4:
-            return 0;
-            break;
+            uint16_t v = mmu.word();
+            if (!r.flag_c()) {
+                call(v);
+                return 6;
+            }
+            return 3;
         case 0xD5:
-            return 0;
-            break;
+            push(r.de());
+            return 4;
         case 0xD6:
-            return 0;
-            break;
+            a_sub(mmu.byte());
+            return 2;
         case 0xD7:
-            return 0;
-            break;
+            rst(0x10);
+            return 4;
         case 0xD8:
-            return 0;
-            break;
+            if (r.flag_c()) {
+                ret();
+                return 5;
+            }
+            return 2;
         case 0xD9:
-            return 0;
-            break;
+            set_ime();
+            ret();
+            return 4;
         case 0xDA:
-            return 0;
-            break;
-        case 0xDB:
-            return 0;
-            break;
+            uint16_t a16 = mmu.word();
+            if (r.flag_c()) {
+                jp(a16);
+                return 4;
+            }
+            return 3;
         case 0xDC:
-            return 0;
-            break;
-        case 0xDD:
-            return 0;
-            break;
+            uint16_t v = mmu.word();
+            if (r.flag_c()) {
+                call(v);
+                return 6;
+            }
+            return 3;
         case 0xDE:
-            return 0;
-            break;
+            sbc(mmu.byte());
+            return 2;
         case 0xDF:
-            return 0;
-            break;
+            rst(0x18);
+            return 4;
 
-        /// UNIMPLEMENTED Row 0xE0-0xEF 
+        /// Row 0xE0-0xEF 
         case 0xE0:
-            return 0;
-            break;
+            mmu.write(0xFF00 | (uint16_t) mmu.byte(), r._a);
+            return 3;
         case 0xE1:
-            return 0;
-            break;
+            r.hl(pop_word());
+            return 3;
         case 0xE2:
-            return 0;
-            break;
-        case 0xE3:
-            return 0;
-            break;
-        case 0xE4:
-            return 0;
-            break;
+            mmu.write(0xFF00 | (uint16_t) r._c, r._a);
+            return 2;
         case 0xE5:
-            return 0;
-            break;
+            push(r.hl());
+            return 4;
         case 0xE6:
-            return 0;
-            break;
+            a_and(mmu.byte());
+            return 2;
         case 0xE7:
-            return 0;
-            break;
+            rst(0x20);
+            return 4;
         case 0xE8:
-            return 0;
-            break;
+            r._sp = add_16_immediate(r._sp, mmu.byte());
+            return 4;
         case 0xE9:
-            return 0;
-            break;
+            jp(r.hl());
+            return 1;
         case 0xEA:
-            return 0;
-            break;
-        case 0xEB:
-            return 0;
-            break;
-        case 0xEC:
-            return 0;
-            break;
-        case 0xED:
-            return 0;
-            break;
+            mmu.write(mmu.word(), r._a);
+            return 4;
         case 0xEE:
-            return 0;
-            break;
+            a_xor(mmu.byte());
+            return 2;
         case 0xEF:
-            return 0;
-            break;
+            rst(0x28);
+            return 4;
 
         /// UNIMPLEMENTED Row 0xF0-0xFF
         case 0xF0:
-            return 0;
-            break;
+            r._a = mmu.read(0xFF00 | (uint16_t) mmu.byte());
+            return 3;
         case 0xF1:
-            return 0;
-            break;
+            r.af(pop_word() & 0xFFF0);
+            return 3;
         case 0xF2:
-            return 0;
-            break;
+            r._a = mmu.read(0xFF00 | (uint16_t) r._c);
+            return 2;
         case 0xF3:
-            return 0;
-            break;
-        case 0xF4:
-            return 0;
-            break;
+            unset_ime();
+            return 1;
         case 0xF5:
-            return 0;
-            break;
+            push(r.af());
+            return 4;
         case 0xF6:
-            return 0;
-            break;
+            a_or(mmu.byte());
+            return 2;
         case 0xF7:
-            return 0;
-            break;
+            rst(0x30);
+            return 4;
         case 0xF8:
-            return 0;
-            break;
+            r.hl(add_16_immediate(r._sp, mmu.byte()));
+            return 3;
         case 0xF9:
-            return 0;
-            break;
+            r._sp = r.hl();
+            return 2;
         case 0xFA:
-            return 0;
-            break;
+            r._a = mmu.read(mmu.word());
+            return 4;
         case 0xFB:
-            return 0;
-            break;
-        case 0xFC:
-            return 0;
-            break;
-        case 0xFD:
-            return 0;
-            break;
+            set_ime();
+            return 1;
         case 0xFE:
-            return 0;
-            break;
+            a_cp(mmu.byte());
+            return 2;
         case 0xFF:
-            return 0;
-            break;
+            rst(0x38);
+            return 4;
 
         default:
-            break;
+            return -1;
     }
 }
 
