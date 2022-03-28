@@ -18,8 +18,13 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 
 qt_add_executable(gameboy-emu MACOSX_BUNDLE WIN32
-    main.cpp
+    include/cpu.h
+    include/gameboy.h
     include/mainwindow.h
+    main.cpp
+    src/alu.cpp
+    src/instructions.cpp
+    src/mmu.cpp
     src/mainwindow.cpp
     src/mainwindow.ui
 )

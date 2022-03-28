@@ -1,6 +1,8 @@
 #include <stdint.h>
 
 #include "../include/cpu.h"
+#include "../include/gameboy.h"
+#include "../include/mmu.h"
 #include "../include/registers.h"
 
 __uint128_t CPU::opcode(uint8_t opcode) {
@@ -13,10 +15,10 @@ __uint128_t CPU::opcode(uint8_t opcode) {
         case 0x00:
             return 1;
         case 0x01:
-            r.bc(mmu.word());
+            r.bc(word());
             return 3;
         case 0x02:
-            mmu.write(r.bc(), r._a);
+            write(r.bc(), r._a);
             return 2;
         case 0x03:
             r.bc(r.bc() + 1);
@@ -28,20 +30,20 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._b -= 1;
             return 1;
         case 0x06:
-            r._b = mmu.byte();
+            r._b = byte();
             return 2;
         case 0x07:
-            r.flag_c(r._a & 0x80);
-            r._a = (r._a << 1) | (r._a >> 7);
+            r._a = rlc(r._a);
+            r.flag_z(false);
             return 1;
         case 0x08:
-            mmu.write(mmu.word(), r._sp);
+            write(word(), r._sp);
             return 5;
         case 0x09:
             r.hl(r.bc() + r.hl());
             return 2;
         case 0x0A:
-            r._a = mmu.read(r.bc());
+            r._a = read(r.bc());
             return 2;
         case 0x0B:
             r.bc(r.bc() - 1);
@@ -53,11 +55,11 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._c -= 1;
             return 1;
         case 0x0E:
-            r._c = mmu.byte();
+            r._c = byte();
             return 2;
         case 0x0F:
-            r.flag_c(r._a & 0x01);
-            r._a = (r._a >> 1) | (r._a << 7);
+            r._a = rrc(r._a);
+            r.flag_n(false);
             return 1;
 
         /// Row 0x10-0x1F
@@ -65,10 +67,10 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             stop();
             return 1;
         case 0x11:
-            r.de(mmu.word());
+            r.de(word());
             return 3;
         case 0x12:
-            mmu.write(r.de(), r._a);
+            write(r.de(), r._a);
             return 2;
         case 0x13:
             r.de(r.de() + 1);
@@ -80,20 +82,20 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._d = dec(r._d);
             return 1;
         case 0x16:
-            r._d = mmu.byte();
+            r._d = byte();
             return 2;
         case 0x17:
             r._a = rl(r._a);
             r.flag_z(false);
             return 1;
         case 0x18:
-            jr((int8_t) mmu.byte());
+            jr((int8_t) byte());
             return 3;
         case 0x19:
             hl_add(r.de());
             return 2;
         case 0x1A:
-            r._a = mmu.read(r.de());
+            r._a = read(r.de());
             return 2;
         case 0x1B:
             r.de(r.de() - 1);
@@ -105,7 +107,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._e = dec(r._e);
             return 1;
         case 0x1E:
-            r._e = mmu.byte();
+            r._e = byte();
             return 2;
         case 0x1F:
             r._a = rr(r._a);
@@ -113,18 +115,19 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             return 1;
 
         /// Row 0x20-0x2F
-        case 0x20:
-            int8_t s8 = mmu.byte();
+        case 0x20: {
+            int8_t s8 = byte();
             if (r.flag_z()) {
                 jr(s8);
                 return 3;
             }
             return 2;
+        }
         case 0x21:
-            r.hl(mmu.word());
+            r.hl(word());
             return 3;
         case 0x22:
-            mmu.write(r.hl(), r._a);
+            write(r.hl(), r._a);
             r.hl(r.hl() - 1);
             return 2;
         case 0x23:
@@ -137,17 +140,17 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._h = dec(r._h);
             return 1;
         case 0x26:
-            r._h = mmu.byte();
+            r._h = byte();
             return 2;
-        case 0x27:
-            uint8_t adj;
+        case 0x27: {
+            uint8_t adj = 0;
             
             if (r.flag_c()) {
-                adj |- 0x60;
+                adj |= 0x60;
             }
 
             if (r.flag_h()) {
-                adj |- 0x06;
+                adj |= 0x06;
             }
 
             if (!r.flag_n()) {
@@ -162,18 +165,20 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r.flag_z(r._a == 0);
 
             return 1;
-        case 0x28:
-            int8_t s8 = mmu.byte();
+        }
+        case 0x28: {
+            int8_t s8 = byte();
             if (!r.flag_z()) {
                 jr(s8);
                 return 3;
             }
             return 2;
+        }
         case 0x29:
             hl_add(r.hl());
             return 2;
         case 0x2A:
-            r._a = mmu.read(r.hl());
+            r._a = read(r.hl());
             r.hl(r.hl() - 1);
             return 2;
         case 0x2B:
@@ -186,7 +191,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._l = dec(r._l);
             return 1;
         case 0x2E:
-            r._l = mmu.byte();
+            r._l = byte();
             return 2;
         case 0x2F:
             r._a = !r._a;
@@ -195,49 +200,51 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             return 1;
 
         /// Row 0x30-0x3F
-        case 0x30:
-            int8_t s8 = (int8_t) mmu.byte();
+        case 0x30: {
+            int8_t s8 = (int8_t) byte();
             if (!r.flag_c()) {
                 jr(s8);
                 return 3;
             }
             return 2;
+        }
         case 0x31:
-            r._sp = mmu.word();
+            r._sp = word();
             return 3;
         case 0x32:
-            mmu.write(r.hl(), r._a);
+            write(r.hl(), r._a);
             r.hl(r.hl() - 1);
             return 2;
         case 0x33:
             r._pc += 1;
             return 2;
         case 0x34:
-            mmu.write(r.hl(), inc(mmu.read(r.hl())));
+            write(r.hl(), inc(read(r.hl())));
             return 3;
         case 0x35:
-            mmu.write(r.hl(), dec(mmu.read(r.hl())));
+            write(r.hl(), dec(read(r.hl())));
             return 3;
         case 0x36:
-            mmu.write(r.hl(), mmu.byte());
+            write(r.hl(), byte());
             return 3;
         case 0x37:
             r.flag_c(true);
             r.flag_h(false);
             r.flag_n(false);
             return 1;
-        case 0x38:
-            int8_t s8 = (int8_t) mmu.byte();
+        case 0x38: {
+            int8_t s8 = (int8_t) byte();
             if (r.flag_c()) {
                 jr(s8);
                 return 3;
             }
             return 2;
+        }
         case 0x39:
             hl_add(r._sp);
             return 2;
         case 0x3A:
-            r._a = mmu.read(r.hl());
+            r._a = read(r.hl());
             r.hl(r.hl() - 1);
             return 2;
         case 0x3B:
@@ -250,7 +257,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._a = dec(r._a);
             return 1;
         case 0x3E:
-            r._a = mmu.byte();
+            r._a = byte();
             return 2;
         case 0x3F:
             r.flag_c(!r.flag_c());
@@ -278,7 +285,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._b = r._l;
             return 1;
         case 0x46:
-            r._b = mmu.read(r.hl());
+            r._b = read(r.hl());
             return 2;
         case 0x47:
             r._b = r._a;
@@ -302,7 +309,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._c = r._l;
             return 1;
         case 0x4E:
-            r._c = mmu.read(r.hl());
+            r._c = read(r.hl());
             return 2;
         case 0x4F:
             r._c = r._a;
@@ -328,7 +335,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._d = r._l;
             return 1;
         case 0x56:
-            r._d = mmu.read(r.hl());
+            r._d = read(r.hl());
             return 2;
         case 0x57:
             r._d = r._a;
@@ -352,7 +359,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._e = r._l;
             return 1;
         case 0x5E:
-            r._e = mmu.read(r.hl());
+            r._e = read(r.hl());
             return 2;
         case 0x5F:
             r._e = r._a;
@@ -378,7 +385,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._h = r._l;
             return 1;
         case 0x66:
-            r._h = mmu.read(r.hl());
+            r._h = read(r.hl());
             return 2;
         case 0x67:
             r._h = r._a;
@@ -402,7 +409,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._l = r._l;
             return 1;
         case 0x6E:
-            r._l = mmu.read(r.hl());
+            r._l = read(r.hl());
             return 2;
         case 0x6F:
             r._l = r._a;
@@ -410,28 +417,28 @@ __uint128_t CPU::opcode(uint8_t opcode) {
 
         /// Row 0x70-0x7F
         case 0x70:
-            mmu.write(r.hl(), r._b);
+            write(r.hl(), r._b);
             return 2;
         case 0x71:
-            mmu.write(r.hl(), r._c);
+            write(r.hl(), r._c);
             return 2;
         case 0x72:
-            mmu.write(r.hl(), r._d);
+            write(r.hl(), r._d);
             return 2;
         case 0x73:
-            mmu.write(r.hl(), r._e);
+            write(r.hl(), r._e);
             return 2;
         case 0x74:
-            mmu.write(r.hl(), r._h);
+            write(r.hl(), r._h);
             return 2;
         case 0x75:
-            mmu.write(r.hl(), r._l);
+            write(r.hl(), r._l);
             return 2;
         case 0x76:
             halt();
             return 1;
         case 0x77:
-            mmu.write(r.hl(), r._a);
+            write(r.hl(), r._a);
             return 2;
         case 0x78:
             r._a = r._b;
@@ -452,7 +459,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._a = r._l;
             return 1;
         case 0x7E:
-            r._a = mmu.read(r.hl());
+            r._a = read(r.hl());
             return 2;
         case 0x7F:
             r._a = r._a;
@@ -478,7 +485,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             a_add(r._l);
             return 1;
         case 0x86:
-            a_add(mmu.read(r.hl()));
+            a_add(read(r.hl()));
             return 2;
         case 0x87:
             a_add(r._a);
@@ -502,7 +509,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             adc(r._l);
             return 1;
         case 0x8E:
-            adc(mmu.read(r.hl()));
+            adc(read(r.hl()));
             return 2;
         case 0x8F:
             adc(r._a);
@@ -528,7 +535,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             a_sub(r._l);
             return 1;
         case 0x96:
-            a_sub(mmu.read(r.hl()));
+            a_sub(read(r.hl()));
             return 2;
         case 0x97:
             a_sub(r._a);
@@ -552,7 +559,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             sbc(r._l);
             return 1;
         case 0x9E:
-            sbc(mmu.read(r.hl()));
+            sbc(read(r.hl()));
             return 2;
         case 0x9F:
             sbc(r._a);
@@ -578,7 +585,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             a_and(r._l);
             return 1;
         case 0xA6:
-            a_and(mmu.read(r.hl()));
+            a_and(read(r.hl()));
             return 2;
         case 0xA7:
             a_and(r._a);
@@ -602,7 +609,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             a_xor(r._l);
             return 1;
         case 0xAE:
-            a_xor(mmu.read(r.hl()));
+            a_xor(read(r.hl()));
             return 2;
         case 0xAF:
             a_xor(r._a);
@@ -628,7 +635,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             a_or(r._l);
             return 1;
         case 0xB6:
-            a_or(mmu.read(r.hl()));
+            a_or(read(r.hl()));
             return 2;
         case 0xB7:
             a_or(r._a);
@@ -652,7 +659,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             a_cp(r._l);
             return 1;
         case 0xBE:
-            a_cp(mmu.read(r.hl()));
+            a_cp(read(r.hl()));
             return 2;
         case 0xBF:
             a_cp(r._a);
@@ -666,30 +673,32 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             }
             return 2;
         case 0xC1:
-            r.bc(pop_word());
+            r.bc(pop());
             return 3;
-        case 0xC2:
-            uint16_t a16 = mmu.word();
+        case 0xC2: {
+            uint16_t a16 = word();
             if (!r.flag_z()) {
                 jp(a16);
                 return 4;
             }
             return 3;
+        }
         case 0xC3:
-            jp(mmu.word());
+            jp(word());
             return 4;
-        case 0xC4:
-            uint16_t v = mmu.word();
+        case 0xC4: {
+            uint16_t v = word();
             if (!r.flag_z()) {
                 call(v);
                 return 6;
             }
             return 3;
+        }
         case 0xC5:
             push(r.bc());
             return 4;
         case 0xC6:
-            a_add(mmu.byte());
+            a_add(byte());
             return 2;
         case 0xC7:
             rst(0x00);
@@ -703,25 +712,27 @@ __uint128_t CPU::opcode(uint8_t opcode) {
         case 0xC9:
             ret();
             return 4;
-        case 0xCA:
-            uint16_t a16 = mmu.word();
+        case 0xCA: {
+            uint16_t a16 = word();
             if (r.flag_z()) {
                 jp(a16);
                 return 4;
             }
             return 3;
-        case 0xCC:
-            uint16_t v = mmu.word();
+        }
+        case 0xCC: {
+            uint16_t v = word();
             if (r.flag_z()) {
                 call(v);
                 return 6;
             }
             return 3;
+        }
         case 0xCD:
-            call(mmu.word());
+            call(word());
             return 6;
         case 0xCE:
-            adc(mmu.byte());
+            adc(byte());
             return 2;
         case 0xCF:
             rst(0x08);
@@ -735,27 +746,29 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             }
             return 2;
         case 0xD1:
-            r.de(pop_word());
+            r.de(pop());
             return 3;
-        case 0xD2:
-            uint16_t a16 = mmu.word();
+        case 0xD2: {
+            uint16_t a16 = word();
             if (!r.flag_c()) {
                 jp(a16);
                 return 4;
             }
             return 3;
-        case 0xD4:
-            uint16_t v = mmu.word();
+        }
+        case 0xD4: {
+            uint16_t v = word();
             if (!r.flag_c()) {
                 call(v);
                 return 6;
             }
             return 3;
+        }
         case 0xD5:
             push(r.de());
             return 4;
         case 0xD6:
-            a_sub(mmu.byte());
+            a_sub(byte());
             return 2;
         case 0xD7:
             rst(0x10);
@@ -770,22 +783,24 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             set_ime();
             ret();
             return 4;
-        case 0xDA:
-            uint16_t a16 = mmu.word();
+        case 0xDA: {
+            uint16_t a16 = word();
             if (r.flag_c()) {
                 jp(a16);
                 return 4;
             }
             return 3;
-        case 0xDC:
-            uint16_t v = mmu.word();
+        }
+        case 0xDC: {
+            uint16_t v = word();
             if (r.flag_c()) {
                 call(v);
                 return 6;
             }
             return 3;
+        }
         case 0xDE:
-            sbc(mmu.byte());
+            sbc(byte());
             return 2;
         case 0xDF:
             rst(0x18);
@@ -793,34 +808,34 @@ __uint128_t CPU::opcode(uint8_t opcode) {
 
         /// Row 0xE0-0xEF 
         case 0xE0:
-            mmu.write(0xFF00 | (uint16_t) mmu.byte(), r._a);
+            write(0xFF00 | (uint16_t) byte(), r._a);
             return 3;
         case 0xE1:
-            r.hl(pop_word());
+            r.hl(pop());
             return 3;
         case 0xE2:
-            mmu.write(0xFF00 | (uint16_t) r._c, r._a);
+            write(0xFF00 | (uint16_t) r._c, r._a);
             return 2;
         case 0xE5:
             push(r.hl());
             return 4;
         case 0xE6:
-            a_and(mmu.byte());
+            a_and(byte());
             return 2;
         case 0xE7:
             rst(0x20);
             return 4;
         case 0xE8:
-            r._sp = add_16_immediate(r._sp, mmu.byte());
+            r._sp = add_16_immediate(r._sp, byte());
             return 4;
         case 0xE9:
             jp(r.hl());
             return 1;
         case 0xEA:
-            mmu.write(mmu.word(), r._a);
+            write(word(), r._a);
             return 4;
         case 0xEE:
-            a_xor(mmu.byte());
+            a_xor(byte());
             return 2;
         case 0xEF:
             rst(0x28);
@@ -828,13 +843,13 @@ __uint128_t CPU::opcode(uint8_t opcode) {
 
         /// UNIMPLEMENTED Row 0xF0-0xFF
         case 0xF0:
-            r._a = mmu.read(0xFF00 | (uint16_t) mmu.byte());
+            r._a = read(0xFF00 | (uint16_t) byte());
             return 3;
         case 0xF1:
-            r.af(pop_word() & 0xFFF0);
+            r.af(pop() & 0xFFF0);
             return 3;
         case 0xF2:
-            r._a = mmu.read(0xFF00 | (uint16_t) r._c);
+            r._a = read(0xFF00 | (uint16_t) r._c);
             return 2;
         case 0xF3:
             unset_ime();
@@ -843,25 +858,25 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             push(r.af());
             return 4;
         case 0xF6:
-            a_or(mmu.byte());
+            a_or(byte());
             return 2;
         case 0xF7:
             rst(0x30);
             return 4;
         case 0xF8:
-            r.hl(add_16_immediate(r._sp, mmu.byte()));
+            r.hl(add_16_immediate(r._sp, byte()));
             return 3;
         case 0xF9:
             r._sp = r.hl();
             return 2;
         case 0xFA:
-            r._a = mmu.read(mmu.word());
+            r._a = read(word());
             return 4;
         case 0xFB:
             set_ime();
             return 1;
         case 0xFE:
-            a_cp(mmu.byte());
+            a_cp(byte());
             return 2;
         case 0xFF:
             rst(0x38);
@@ -873,7 +888,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
 }
 
 
-__uint128_t opcode_cb(uint8_t opcode) {
+__uint128_t CPU::opcode_cb(uint8_t opcode) {
 
     switch (opcode) {
 
@@ -1678,6 +1693,6 @@ __uint128_t opcode_cb(uint8_t opcode) {
             break;
 
         default:
-            break;
+            return -1;
     }
 }

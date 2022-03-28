@@ -8,18 +8,20 @@
 
 #include <vector>
 
+enum IME { Enabled, Disabled, OneCycleDelay };
+
 class CPU {
 
-
     public:
-        CPU(std::vector<int> & cartridge): mmu(MMU(cartridge)), r(Registers()), cb(false), t(0) {};
-        MMU mmu;
-        Registers r;
-
+        CPU(std::vector<int> & cartridge): mmu(MMU(cartridge)), r(Registers()), cb(false), t(0), ime(IME::Enabled) {};
+        
     private:
 
+        MMU mmu;
+        Registers r;
         bool cb;
         __uint128_t t;
+
         __uint128_t opcode(uint8_t opcode);
         __uint128_t opcode_cb(uint8_t opcode);
 
@@ -35,7 +37,7 @@ class CPU {
         
         void hl_add(uint16_t v);
         void  a_add(uint8_t v);
-        void  a_sub(uint8_t v);
+        uint8_t  a_sub(uint8_t v);
 
         uint8_t rl(uint8_t v);
         uint8_t rr(uint8_t v);
@@ -50,17 +52,31 @@ class CPU {
         void call(uint16_t v);
         void ret();
 
-        uint8_t pop_byte();
-        uint16_t pop_word();
-        void push(uint8_t v);
+        uint16_t pop();
         void push(uint16_t v);
 
         void rst(uint8_t v);
-        void ret();
 
-        uint16_t add_16_immediate(uint8_t a, uint8_t b);
+        uint16_t add_16_immediate(uint16_t a, uint8_t b);
         void set_ime();
         void unset_ime();
+
+        IME ime;
+
+        uint8_t rlc(uint8_t v);
+        uint8_t rrc(uint8_t v);
+
+        uint8_t alu_add(uint8_t a, uint8_t b);
+        uint16_t alu_add(uint16_t a, uint16_t b);
+
+        uint8_t byte();
+        uint16_t word();
+
+        uint8_t read(uint16_t address);
+        void write(uint16_t address, uint8_t value);
+        void write(uint16_t address, uint16_t value);
+    
+
 };
 
 #endif
