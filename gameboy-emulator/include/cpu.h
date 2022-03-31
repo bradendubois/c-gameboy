@@ -76,7 +76,15 @@ class CPU {
         void write(uint16_t address, uint8_t value);
         void write(uint16_t address, uint16_t value);
     
+        uint8_t sla(uint8_t v);
+        uint8_t sra(uint8_t v);
 
+        uint8_t swap(uint8_t v);
+        uint8_t srl(uint8_t v);
+
+        void bit(uint8_t bit, uint8_t v);
+        uint8_t res(uint8_t bit, uint8_t v);
+        uint8_t set(uint8_t bit, uint8_t v);
 };
 
 #endif
