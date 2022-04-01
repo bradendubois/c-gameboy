@@ -24,10 +24,10 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r.bc(r.bc() + 1);
             return 2;
         case 0x04:
-            r._b += 1;
+            r._b = inc(r._b);
             return 1;
         case 0x05:
-            r._b -= 1;
+            r._b = dec(r._b);
             return 1;
         case 0x06:
             r._b = byte();
@@ -49,10 +49,10 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r.bc(r.bc() - 1);
             return 2;
         case 0x0C:
-            r._c += 1;
+            r._c = inc(r._c);
             return 1;
         case 0x0D:
-            r._c -= 1;
+            r._c = dec(r._c);
             return 1;
         case 0x0E:
             r._c = byte();
@@ -117,8 +117,12 @@ __uint128_t CPU::opcode(uint8_t opcode) {
         /// Row 0x20-0x2F
         case 0x20: {
             int8_t s8 = byte();
-            if (r.flag_z()) {
+            if (!r.flag_z()) {
+                std::cout << "Before " << (int) s8 << std::endl;
+                std::cout << r._pc << std::endl;
                 jr(s8);
+                std::cout << r._pc << std::endl;
+
                 return 3;
             }
             return 2;
@@ -168,7 +172,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
         }
         case 0x28: {
             int8_t s8 = byte();
-            if (!r.flag_z()) {
+            if (r.flag_z()) {
                 jr(s8);
                 return 3;
             }
@@ -179,7 +183,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             return 2;
         case 0x2A:
             r._a = read(r.hl());
-            r.hl(r.hl() - 1);
+            r.hl(r.hl() + 1);
             return 2;
         case 0x2B:
             r.hl(r.hl() - 1);
@@ -720,6 +724,9 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             }
             return 3;
         }
+        case 0xCB:
+            cb = true;
+            return 1;
         case 0xCC: {
             uint16_t v = word();
             if (r.flag_z()) {

@@ -43,13 +43,16 @@ int main(int argc, char *argv[])
     Cartridge cartridge(data);
     std::cout << cartridge.toString() << std::endl;
 
+    Gameboy gb = Gameboy(data);
+    gb.run();
+
     return 0;
 
-    QApplication a(argc, argv);
-    MainWindow w;
-    w.show();
+    // QApplication a(argc, argv);
+    // MainWindow w;
+    // w.show();
 
-    // std::vector<int> cartridge;
-    // Gameboy gb = Gameboy(cartridge);
-    return a.exec();
+    // // std::vector<int> cartridge;
+    // // Gameboy gb = Gameboy(cartridge);
+    // return a.exec();
 }

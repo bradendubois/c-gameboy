@@ -4,6 +4,9 @@
 #include "../include/cpu.h"
 #include "../include/mmu.h"
 
+#include <iostream>
+#include <stdint.h>
+
 void CPU::push(uint16_t v) {
     r._sp -= 2;
     write(r._sp, v);
@@ -31,7 +34,7 @@ void CPU::rst(uint8_t v) {
 }
 
 void CPU::jr(int8_t v) {
-    r._pc = ((int32_t) ((uint32_t) r._pc)) + ((uint16_t) ((int32_t) v));
+    r._pc = (uint16_t) (((int32_t) ((uint32_t) r._pc)) + ((uint16_t) ((int32_t) v)));
 }
 
 void CPU::jp(uint16_t v) {
@@ -54,7 +57,7 @@ void CPU::stop() {
 uint8_t CPU::inc(uint8_t v) {
     uint8_t s = v + 1;
     r.flag_z(s == 0);
-    r.flag_h((s & 0x0F) + 1 > 0x0F);
+    r.flag_h(((v & 0x0F) + 1) > 0x0F);
     r.flag_n(false);
     return s;
 }
@@ -62,7 +65,7 @@ uint8_t CPU::inc(uint8_t v) {
 uint8_t CPU::dec(uint8_t v) {
     uint8_t s = v - 1;
     r.flag_z(s == 0);
-    r.flag_h((s & 0x0F) == 0);
+    r.flag_h((v & 0x0F) == 0);
     r.flag_n(true);
     return s;
 }
@@ -107,7 +110,7 @@ uint8_t CPU::rlc(uint8_t v) {
 }
 
 uint8_t CPU::rrc(uint8_t v) {
-    uint8_t s = (v >> 1) | (v << 1);
+    uint8_t s = (v >> 1) | (v << 7);
     r.flag_z(s == 0);
     r.flag_n(false);
     r.flag_h(false);
@@ -203,24 +206,82 @@ uint16_t CPU::add_16_immediate(uint16_t a, uint8_t b) {
 //
 
 uint8_t CPU::byte() {
-    uint8_t value = mmu.read(r._pc);
+    uint8_t value = read(r._pc);
     r._pc += 1;
     return value;
 }
 
 uint16_t CPU::word() {
-    return ((uint16_t) byte()) | (((uint16_t) byte()) << 8);
+    uint16_t v = ((uint16_t) byte()) | (((uint16_t) byte()) << 8);
+    std::cout << "Retrieved Word " << std::hex << (int) v << std::dec << std::endl;
+    return v;
 }
 
 uint8_t CPU::read(uint16_t address) {
-    return mmu.read(address);
+    uint8_t value = mmu.read(address);
+    std::cout << "Retrieved Byte " << std::hex << (int) value << std::dec << std::endl;
+    return value;
 }
 
 void CPU::write(uint16_t address, uint8_t value) {
+    std::cout << "Writing value " << std::hex << (int) value << std::dec << " to address " << std::hex << address << std::dec << std::endl;
     mmu.write(address, value);
+    if (read(address) != value) {
+        std::cerr << "BAD WRITE " << std::hex << address << " " << value << std::dec << std::endl;
+        exit(0);
+    }
 }
 
 void CPU::write(uint16_t address, uint16_t value) {
+    std::cout << "16 bit write" << std::endl;
     write(address, (uint8_t) value);
     write(address + 1, (uint8_t) (value >> 8));
+}
+
+///
+
+uint8_t CPU::sla(uint8_t v) {
+    r.flag_c((v & 0x80) != 0);
+    r.flag_z((v << 1) == 0);
+    r.flag_h(false);
+    r.flag_n(false);
+    return v << 1;
+}
+
+uint8_t CPU::sra(uint8_t v) {
+    r.flag_z((v >> 1 | (v & 0x80)) == 0);
+    r.flag_h(false);
+    r.flag_n(false);
+    r.flag_c((v & 0x01) != 0);
+    return (v >> 1) | (v & 0x80);
+}
+
+uint8_t CPU::swap(uint8_t v) {
+    r.flag_z(v == 0);
+    r.flag_c(false);
+    r.flag_h(false);
+    r.flag_n(false);
+    return (v >> 4) | (v << 4);
+}
+
+uint8_t CPU::srl(uint8_t v) {
+    r.flag_c((v & 0x01) != 0);
+    r.flag_z((v >> 1) == 0);
+    r.flag_n(false);
+    r.flag_h(false);
+    return v >> 1;
+}
+
+void CPU::bit(uint8_t bit, uint8_t v) {
+    r.flag_z((v & (1 << bit)) == 0);
+    r.flag_n(false);
+    r.flag_h(true);
+}
+
+uint8_t CPU::res(uint8_t bit, uint8_t v) {
+    return v & (~(1 << bit));
+}
+
+uint8_t CPU::set(uint8_t bit, uint8_t v) {
+    return v | (1 << bit);
 }

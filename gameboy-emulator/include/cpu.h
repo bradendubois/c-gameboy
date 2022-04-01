@@ -13,8 +13,9 @@ enum IME { Enabled, Disabled, OneCycleDelay };
 class CPU {
 
     public:
-        CPU(std::vector<int> & cartridge): mmu(MMU(cartridge)), r(Registers()), cb(false), t(0), ime(IME::Enabled) {};
-        
+        CPU(std::vector<uint8_t> & cartridge): mmu(MMU(cartridge)), r(Registers()), cb(false), t(0), ime(IME::Disabled) {};
+        void run();
+
     private:
 
         MMU mmu;

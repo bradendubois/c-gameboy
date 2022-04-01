@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.5)
 
+set(CMAKE_C_COMPILER /usr/bin/g++) 
+set(CMAKE_CXX_COMPILER /usr/bin/g++)
+
+set(CLANG_CXX_LANGUAGE_STAND = c++2a)
+
 project(gameboy-emulator VERSION 0.1 LANGUAGES CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -18,12 +23,20 @@ find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 
 qt_add_executable(gameboy-emu MACOSX_BUNDLE WIN32
+    include/cartridge.h
     include/cpu.h
     include/gameboy.h
     include/mainwindow.h
+    include/mbc.h
+    include/mbc1.h
+    include/mmu.h
+    include/registers.h
     main.cpp
     src/alu.cpp
+    src/cpu.cpp
+    src/gameboy.cpp
     src/instructions.cpp
+    src/mbcs/mbc1.cpp
     src/mmu.cpp
     src/mainwindow.cpp
     src/mainwindow.ui
@@ -61,7 +74,7 @@ qt_add_executable(gameboy-emu MACOSX_BUNDLE WIN32
 
 target_link_libraries(gameboy-emu PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
-target_compile_options(gameboy-emu PRIVATE -Wall -Wextra -Wpedantic -Werror)
+target_compile_options(gameboy-emu PRIVATE -Wall -Wextra -Wpedantic -Wgnu-case-range)
 
 # set_target_properties(gameboy-emulator PROPERTIES
 #     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com

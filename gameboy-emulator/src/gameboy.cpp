@@ -1,6 +1,6 @@
 #include "../include/gameboy.h"
+#include <iostream>
 
-// class Gameboy {
-
-
-// };
+void Gameboy::run() {
+    cpu.run();
+}
