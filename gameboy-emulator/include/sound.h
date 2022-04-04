@@ -1,10 +1,12 @@
-#ifndef MBC1_H
-#define MBC1_H
+#ifndef SOUND_H
+#define SOUND_H
 
-class MBC1: MBC {
+#include <stdint.h>
+
+class Sound {
 
     public:
-        MBC1(std::vector<uint8_t> *data): MBC(data) {};
+        Sound() {};
         uint8_t read(uint16_t address);
         void write(uint16_t address, uint8_t value);
 };

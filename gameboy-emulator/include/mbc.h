@@ -10,7 +10,7 @@ const uint16_t RAM_BANK_SIZE = 0x2000;
 class MBC {
 
     public:
-        MBC(std::vector<uint8_t> & data):
+        MBC(std::vector<uint8_t> *data):
             data(data),
             ram(std::vector<uint8_t>(0x2000, 0)),
             ramEnable(false),
@@ -22,7 +22,7 @@ class MBC {
         uint8_t write(uint16_t address, uint8_t value);
 
     protected:
-        std::vector<uint8_t> data;
+        std::vector<uint8_t> *data;
         std::vector<uint8_t> ram;
         bool ramEnable;
         uint8_t romBankNumber;

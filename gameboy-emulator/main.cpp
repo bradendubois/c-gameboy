@@ -1,5 +1,6 @@
-#include "include/cartridge.h"
+// #include "include/cartridge.h"
 #include "include/gameboy.h"
+// #include "include/joypad.h"
 #include "include/mainwindow.h"
 
 #include <fstream>
@@ -9,50 +10,32 @@
 #include <stdint.h>
 
 #include <QApplication>
+#include <QObject>
 
 int main(int argc, char *argv[])
 {
 
-    for (int i = 0; i < argc; i++) {
-        std::cout << argv[i] << std::endl;
+    char *rom = nullptr;
+    if (argc > 1) {
+        rom = argv[1];
     }
 
-    if (argc == 1) {
-        std::cout << "Missing rom!" << std::endl;
-        return 0;
-    }
-    
-    std::ifstream instream(argv[1], std::ios::in | std::ios::binary);
-    std::vector<uint8_t> data((std::istreambuf_iterator<char>(instream)), std::istreambuf_iterator<char>());
+    // Gameboy gb = Gameboy(data);
+    // gb.run();
 
-    std::cout << std::hex << (int) data[0x0104] << std::endl;
-    std::cout << std::hex << 0xCE << std::endl;
+    // return 0;
 
-    std::cout << std::hex;
-    for (int i = 0; i < 3; ++i) {
-        for (int j = 0; j < 16; ++j) {
-            std::cout << (int) data[0x0104 + ((i * 16) + j)] << " ";
-        } std::cout << std::endl;
-    }
+    QApplication a(argc, argv);
+    // MainWindow w(rom);
+    MainWindow w;
 
-    std::cout << std::dec;
-    for (int i = 0x0134; i <= 0x0143; ++i) {
-        std::cout << data[i] << " ";
-    } std::cout << std::endl;
+    // Joypad j = Joypad();
 
-    Cartridge cartridge(data);
-    std::cout << cartridge.toString() << std::endl;
+    // QObject::connect(&w, &MainWindow::pressed, &j, &Joypad::receivePress);
 
-    Gameboy gb = Gameboy(data);
-    gb.run();
+    w.show();
 
-    return 0;
-
-    // QApplication a(argc, argv);
-    // MainWindow w;
-    // w.show();
-
-    // // std::vector<int> cartridge;
-    // // Gameboy gb = Gameboy(cartridge);
-    // return a.exec();
+    // std::vector<int> cartridge;
+    // Gameboy gb = Gameboy(cartridge);
+    return a.exec();
 }

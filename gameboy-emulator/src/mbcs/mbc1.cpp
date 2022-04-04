@@ -8,12 +8,11 @@ uint8_t MBC1::read(uint16_t address) {
     switch (address) {
         case 0x0000 ... 0x3FFF:
             if (bankingMode == 0) {
-                return data.at(address);
+                return data->at(address);
             }
-            return data.at((ROM_BANK_SIZE * (ramBankNumber << 5)) | (address) & ROM_BANK_SIZE - 1);
+            return data->at((ROM_BANK_SIZE * (ramBankNumber << 5)) | (address) & ROM_BANK_SIZE - 1);
         case 0x4000 ... 0x7FFF:
-            std::cout << "LOOKUP?" << std::endl;
-            return data.at((ROM_BANK_SIZE * romBankNumber) | (address) & (ROM_BANK_SIZE - 1));
+            return data->at((ROM_BANK_SIZE * romBankNumber) | (address) & (ROM_BANK_SIZE - 1));
         case 0xA000 ... 0xBFFF:
             if (!ramEnable) {
                 return 0;

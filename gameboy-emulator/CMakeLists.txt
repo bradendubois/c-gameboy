@@ -12,35 +12,30 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-
 set(CMAKE_PREFIX_PATH /opt/homebrew/Cellar/qt)
 
 
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 
-qt_add_executable(gameboy-emu MACOSX_BUNDLE WIN32
-    include/cartridge.h
-    include/cpu.h
-    include/gameboy.h
+
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+
+add_executable(gameboy-emu MACOSX_BUNDLE WIN32
     include/mainwindow.h
-    include/mbc.h
-    include/mbc1.h
-    include/mmu.h
-    include/registers.h
+    include/joypad.h
+    src/joypad.cpp
     main.cpp
-    src/alu.cpp
-    src/cpu.cpp
-    src/gameboy.cpp
-    src/instructions.cpp
-    src/mbcs/mbc1.cpp
-    src/mmu.cpp
     src/mainwindow.cpp
     src/mainwindow.ui
 )
+
+target_include_directories(gameboy-emu
+    PRIVATE include/ src/ gui/ $CMAKE_PREFIX_PATH
+)
+
 
 # set(PROJECT_SOURCES
 #         main.cpp

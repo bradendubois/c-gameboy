@@ -13,9 +13,9 @@ void CPU::run() {
         prev = code;
         code = byte();
         
-        if (cycles == 16450) {
-            exit(0);
-        }
+        // if (cycles == 16450) {
+        //     exit(0);
+        // }
 
         if (code == 0x40) {
             std::cout << "DONE" << std::endl;
