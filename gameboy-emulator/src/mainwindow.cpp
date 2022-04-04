@@ -6,7 +6,6 @@
 #include "include/mainwindow.h"
 
 #include <QFileDialog>
-// #include "ui_mainwindow.h"
 #include <vector>
 #include <stdint.h>
 
@@ -16,50 +15,36 @@
 #include <QObject>
 #include <QAction>
 #include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QStatusBar>
 #include <QActionGroup>
 
+#include "gui/include/metaRegisters.h"
 
 MainWindow::MainWindow() {
     
-    // ui->setupUi(this);
-    // (void) rom;
-    // createMenuBar();
-    
-    // QVBoxLayout *layout = new QVBoxLayout;
-
-    // layout->setMenuBar(menuBar);
-
     QWidget *widget = new QWidget;
     setCentralWidget(widget);
 
-    QWidget *topFiller = new QWidget;
-    topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    QHBoxLayout *layout = new QHBoxLayout;
 
-    infoLabel = new QLabel(tr("<i>Choose a menu option, or right-click to "
-                              "invoke a context menu</i>"));
-    infoLabel->setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
-    infoLabel->setAlignment(Qt::AlignCenter);
+    // createCartridgeGroup();
+    // createPlayerGroup();
 
-    QWidget *bottomFiller = new QWidget;
-    bottomFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    // mc = new MetaCartridge;
+    // layout->addLayout(mc);
 
-    QVBoxLayout *layout = new QVBoxLayout;
-    layout->setContentsMargins(5, 5, 5, 5);
-    layout->addWidget(topFiller);
-    layout->addWidget(infoLabel);
-    layout->addWidget(bottomFiller);
-    widget->setLayout(layout);
-
-
-    QString message = tr("A context menu is available by right-clicking");
-    statusBar()->showMessage(message);
 
     setWindowTitle(tr("Menus"));
     setMinimumSize(160, 160);
     resize(480, 320);
 
     createMenuBar();
+
+    createDetailsPanel();
+    layout->addLayout(r);
+
+    widget->setLayout(layout);
 
     // setLayout(layout);
 
@@ -87,15 +72,6 @@ MainWindow::MainWindow() {
     // std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
 }
 
-
-MainWindow::~MainWindow()
-{
-}
-
-void MainWindow::testslot(int value)
-{
-    (void) value;
-}
 
 void MainWindow::keyPressEvent(QKeyEvent *e) {
     emit pressed(e);
@@ -150,5 +126,58 @@ void MainWindow::setRom(std::string romName) {
     cartridge = new std::vector<uint8_t>((std::istreambuf_iterator<char>(instream)),       std::istreambuf_iterator<char>());
 
     gameboy = new Gameboy(cartridge);
+
+
+}
+
+void MainWindow::createCartridgeGroup() {
+
+    // l = new QVBoxLayout;
+
+    // QWidget *topFiller = new QWidget;
+    // topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    // QLabel *t = new QLabel(tr("Some text"));
+    // t->setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
+    // t->setAlignment(Qt::AlignCenter);
+
+    // QWidget *bottomFiller = new QWidget;
+    // bottomFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    // l->setContentsMargins(5, 5, 5, 5);
+    // l->addWidget(topFiller);
+    // l->addWidget(t);
+    // l->addWidget(bottomFiller);
+
+}
+
+void MainWindow::createDetailsPanel() {
+
+    r = new QVBoxLayout;
+    r->addWidget(new MetaRegisters);
+    r->addWidget(new MetaCartridge);
+
+
+}
+
+
+void MainWindow::createPlayerGroup() {
+
+    r = new QVBoxLayout;
+
+    QWidget *topFiller = new QWidget;
+    topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    QLabel *t = new QLabel(tr("Some text"));
+    t->setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
+    t->setAlignment(Qt::AlignCenter);
+
+    QWidget *bottomFiller = new QWidget;
+    bottomFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    r->setContentsMargins(5, 5, 5, 5);
+    r->addWidget(topFiller);
+    r->addWidget(t);
+    r->addWidget(bottomFiller);
 
 }

@@ -5,8 +5,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "cpu.h"
-
 class Registers {
 
     public:

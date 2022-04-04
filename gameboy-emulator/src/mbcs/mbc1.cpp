@@ -10,14 +10,14 @@ uint8_t MBC1::read(uint16_t address) {
             if (bankingMode == 0) {
                 return data->at(address);
             }
-            return data->at((ROM_BANK_SIZE * (ramBankNumber << 5)) | (address) & ROM_BANK_SIZE - 1);
+            return data->at((ROM_BANK_SIZE * (ramBankNumber << 5)) | ((address) & ROM_BANK_SIZE - 1));
         case 0x4000 ... 0x7FFF:
-            return data->at((ROM_BANK_SIZE * romBankNumber) | (address) & (ROM_BANK_SIZE - 1));
+            return data->at((ROM_BANK_SIZE * romBankNumber) | ((address) & (ROM_BANK_SIZE - 1)));
         case 0xA000 ... 0xBFFF:
             if (!ramEnable) {
                 return 0;
             }
-            return (bankingMode == 0 ? ram[address & (RAM_BANK_SIZE - 1)] : ram[(ramBankNumber * RAM_BANK_SIZE) | address & (RAM_BANK_SIZE - 1)]);
+            return (bankingMode == 0 ? ram[address & (RAM_BANK_SIZE - 1)] : ram[(ramBankNumber * RAM_BANK_SIZE) | (address & (RAM_BANK_SIZE - 1))]);
         default:
             throw std::invalid_argument("Impossible cartridge read address: " + std::to_string(address));
     }

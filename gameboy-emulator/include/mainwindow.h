@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include "gameboy.h"
-
+#include "../gui/include/metaCartridge.h"
 #include <QMainWindow>
 #include <QMenuBar>
 #include <QMenu>
@@ -10,7 +10,8 @@
 
 #include <QMetaObject>
 #include <QLabel>
-
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <vector>
 #include <stdint.h>
 
@@ -25,11 +26,10 @@ class MainWindow : public QMainWindow
 
     public:
         MainWindow();
-        ~MainWindow();
+        ~MainWindow() {};
 
 
     public slots:
-        void testslot(int value);
         void keyPressEvent(QKeyEvent *e);
         void keyReleaseEvent(QKeyEvent *e);
 
@@ -50,6 +50,11 @@ class MainWindow : public QMainWindow
         Gameboy *gameboy;
 
         void createMenuBar();
+
+        void createDetailsPanel();
+
+        void createCartridgeGroup();
+        void createPlayerGroup();
 
         void createActions();
 
@@ -84,6 +89,9 @@ class MainWindow : public QMainWindow
         QAction *aboutAct;
         QAction *aboutQtAct;
         QLabel *infoLabel;
+
+        MetaCartridge *mc;
+        QVBoxLayout *r;
 };
 
 #endif // MAINWINDOW_H

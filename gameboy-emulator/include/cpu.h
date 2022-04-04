@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#include "mmu.h"
 #include "registers.h"
+#include "mmu.h"
 
 #include <vector>
 
