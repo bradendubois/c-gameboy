@@ -20,14 +20,8 @@ int main(int argc, char *argv[])
         rom = argv[1];
     }
 
-    // Gameboy gb = Gameboy(data);
-    // gb.run();
-
-    // return 0;
-
     QApplication a(argc, argv);
-    // MainWindow w(rom);
-    MainWindow w;
+    MainWindow w(rom);
 
     // Joypad j = Joypad();
 

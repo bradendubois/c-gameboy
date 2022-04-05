@@ -7,19 +7,27 @@
 #include "mmu.h"
 
 #include <vector>
+#include <QObject>
 
 enum IME { Enabled, Disabled, OneCycleDelay };
 
-class CPU {
+class CPU: public QObject {
+
+    Q_OBJECT
 
     public:
-        CPU(std::vector<uint8_t> *cartridge): mmu(MMU(cartridge)), r(Registers()), cb(false), t(0), ime(IME::Disabled) {};
+        CPU(std::vector<uint8_t> *cartridge): r(Registers()), mmu(MMU(cartridge)), cb(false), t(0), ime(IME::Disabled) {};
         void run();
+        void update();
+
+    signals:
+        void updateRegister(REGISTER_POSITION r, uint16_t value);
 
     private:
 
-        MMU mmu;
+
         Registers r;
+        MMU mmu;
         bool cb;
         __uint128_t t;
 

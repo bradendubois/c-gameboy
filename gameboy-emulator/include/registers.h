@@ -4,7 +4,11 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <QObject>
 
+#include "gui/include/metaRegisters.h"
+
+#include <stdint.h>
 class Registers {
 
     public:
@@ -63,6 +67,7 @@ class Registers {
                 " H:   " + hexout(2, _h)  + " |  L   " + hexout(2, _l) + "\n" +
                 "PC: " + hexout(4, _pc) + " | SP " + hexout(4, _sp) + "\n";
         }
+
 };
 
 #endif

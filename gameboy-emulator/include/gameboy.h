@@ -10,11 +10,8 @@ class Gameboy {
 
     public:
         Gameboy(std::vector<uint8_t> *cartridge): cpu(CPU(cartridge)) {};
-        
+        CPU cpu;        
         void run();
-
-    private:
-        CPU cpu;
 
 };
 

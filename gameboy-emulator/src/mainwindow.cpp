@@ -20,56 +20,38 @@
 #include <QActionGroup>
 
 #include "gui/include/metaRegisters.h"
+#include "gui/include/metaGameboy.h"
 
-MainWindow::MainWindow() {
+MainWindow::MainWindow(char *rom) {
     
     QWidget *widget = new QWidget;
     setCentralWidget(widget);
 
     QHBoxLayout *layout = new QHBoxLayout;
 
-    // createCartridgeGroup();
-    // createPlayerGroup();
-
-    // mc = new MetaCartridge;
-    // layout->addLayout(mc);
-
-
-    setWindowTitle(tr("Menus"));
+    setWindowTitle(tr("Gameboy Emulator"));
     setMinimumSize(160, 160);
-    resize(480, 320);
+    resize(640, 480);
+
+    mr = new MetaRegisters;
+    gb = new MetaGameboy;
+
+    connect(this, &MainWindow::selectedRom, gb, &MetaGameboy::createGameboy);
+    connect(gb, &MetaGameboy::ready, this, &MainWindow::gameboyReady);
 
     createMenuBar();
-
     createDetailsPanel();
+
+
     layout->addLayout(r);
+    layout->addLayout(new QVBoxLayout);
+    layout->addLayout(gb);
 
     widget->setLayout(layout);
 
-    // setLayout(layout);
-
-    // QWidget * wdg = new QWidget(this);
-    // QVBoxLayout *vlay = new QVBoxLayout(wdg);
-    
-    // QPushButton *btn1 = new QPushButton("btn1");
-    // vlay->addWidget(btn1);
-
-    // QPushButton *btn2 = new QPushButton("btn2");
-    // vlay->addWidget(btn2);
-    
-    // QPushButton *btn3 = new QPushButton("btn3");
-    // vlay->addWidget(btn3);
-    // wdg->setLayout(vlay);
-    
-    // setCentralWidget(wdg);
-    
-    // connect(btn1, SIGNAL(clicked()), this, SLOT(setFile()));
-    // QString fileName = QFileDialog::getOpenFileName(this, tr("Open Image"), "/home", tr("Image Files (*.png, *.jpg, *.bmp)"));
-
-    // std::ifstream input(fileName.toStdString(), std::ios::binary );
-
-    // copies all data into buffer
-    // std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
+    if (rom != nullptr) {
+        emit selectedRom(std::string(rom));
+    }
 }
 
 
@@ -86,7 +68,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent *e) {
 
 void MainWindow::setFile() {
     QString rom = QFileDialog::getOpenFileName(this, tr("Open Image"), "~", tr("ROM Files (*.rom *gb"));
-    emit setRom(rom.toStdString());
+    emit selectedRom(rom.toStdString());
 }
 
 
@@ -95,7 +77,6 @@ void MainWindow::createMenuBar() {
     menuBar = new QMenuBar();
 
     fileMenu = menuBar->addMenu(tr("&File"));
-
 
     selectRom = fileMenu->addAction(tr("&Select ROM"));
     connect(selectRom, &QAction::triggered, [=]() {
@@ -111,50 +92,24 @@ void MainWindow::createMenuBar() {
     menuBar->addMenu(fileMenu);
 
     setMenuBar(menuBar);
-
 }
 
 
 
-void MainWindow::newFile() {
 
-}
+// void MainWindow::setRom(std::string romName) {
 
-void MainWindow::setRom(std::string romName) {
+//     std::ifstream instream(std::string(romName), std::ios::in | std::ios::binary);
+//     cartridge = new std::vector<uint8_t>((std::istreambuf_iterator<char>(instream)),       std::istreambuf_iterator<char>());
+//     emit 
 
-    std::ifstream instream(std::string(romName), std::ios::in | std::ios::binary);
-    cartridge = new std::vector<uint8_t>((std::istreambuf_iterator<char>(instream)),       std::istreambuf_iterator<char>());
+// }
 
-    gameboy = new Gameboy(cartridge);
-
-
-}
-
-void MainWindow::createCartridgeGroup() {
-
-    // l = new QVBoxLayout;
-
-    // QWidget *topFiller = new QWidget;
-    // topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    // QLabel *t = new QLabel(tr("Some text"));
-    // t->setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
-    // t->setAlignment(Qt::AlignCenter);
-
-    // QWidget *bottomFiller = new QWidget;
-    // bottomFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    // l->setContentsMargins(5, 5, 5, 5);
-    // l->addWidget(topFiller);
-    // l->addWidget(t);
-    // l->addWidget(bottomFiller);
-
-}
 
 void MainWindow::createDetailsPanel() {
 
     r = new QVBoxLayout;
-    r->addWidget(new MetaRegisters);
+    r->addWidget(mr);
     r->addWidget(new MetaCartridge);
 
 
@@ -180,4 +135,9 @@ void MainWindow::createPlayerGroup() {
     r->addWidget(t);
     r->addWidget(bottomFiller);
 
+}
+
+void MainWindow::gameboyReady() {
+    connect(&gb->gameboy->cpu, &CPU::updateRegister, mr, &MetaRegisters::updateRegisters);
+    gb->gameboy->cpu.update();
 }

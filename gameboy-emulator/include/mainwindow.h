@@ -2,7 +2,8 @@
 #define MAINWINDOW_H
 
 #include "gameboy.h"
-#include "../gui/include/metaCartridge.h"
+#include "gui/include/metaCartridge.h"
+#include "gui/include/metaGameboy.h"
 #include <QMainWindow>
 #include <QMenuBar>
 #include <QMenu>
@@ -25,20 +26,19 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
     public:
-        MainWindow();
+        MainWindow(char *rom = nullptr);
         ~MainWindow() {};
-
 
     public slots:
         void keyPressEvent(QKeyEvent *e);
         void keyReleaseEvent(QKeyEvent *e);
+        void gameboyReady();
 
     private slots:
         void setFile();
-        void setRom(std::string romName);
-        void newFile();
 
     signals:
+        void selectedRom(std::string romName);
         void pressed(QKeyEvent *e);
 
     protected:
@@ -47,13 +47,11 @@ class MainWindow : public QMainWindow
     private:
         Ui::MainWindow *ui;
 
-        Gameboy *gameboy;
 
         void createMenuBar();
 
         void createDetailsPanel();
 
-        void createCartridgeGroup();
         void createPlayerGroup();
 
         void createActions();
@@ -68,30 +66,12 @@ class MainWindow : public QMainWindow
         QMenu *formatMenu;
         QMenu *helpMenu;
         QActionGroup *alignmentGroup;
-        QAction *newAct;
-        QAction *openAct;
-        QAction *saveAct;
-        QAction *printAct;
-        QAction *exitAct;
-        QAction *undoAct;
-        QAction *redoAct;
-        QAction *cutAct;
-        QAction *copyAct;
-        QAction *pasteAct;
-        QAction *boldAct;
-        QAction *italicAct;
-        QAction *leftAlignAct;
-        QAction *rightAlignAct;
-        QAction *justifyAct;
-        QAction *centerAct;
-        QAction *setLineSpacingAct;
-        QAction *setParagraphSpacingAct;
-        QAction *aboutAct;
-        QAction *aboutQtAct;
         QLabel *infoLabel;
 
+        MetaRegisters *mr;
         MetaCartridge *mc;
         QVBoxLayout *r;
+        MetaGameboy *gb;
 };
 
 #endif // MAINWINDOW_H
