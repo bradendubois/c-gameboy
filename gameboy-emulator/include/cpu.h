@@ -3,11 +3,15 @@
 
 #include <stdint.h>
 
+#include "gameboy.h"
 #include "registers.h"
 #include "mmu.h"
+#include "cartridge.h"
 
 #include <vector>
 #include <QObject>
+
+class Gameboy;
 
 enum IME { Enabled, Disabled, OneCycleDelay };
 
@@ -16,7 +20,7 @@ class CPU: public QObject {
     Q_OBJECT
 
     public:
-        CPU(std::vector<uint8_t> *cartridge): r(Registers()), mmu(MMU(cartridge)), cb(false), t(0), ime(IME::Disabled) {};
+        CPU(Gameboy *parent, Cartridge *cartridge);
         void run();
         void update();
 
@@ -25,7 +29,7 @@ class CPU: public QObject {
 
     private:
 
-
+        Gameboy *parent;
         Registers r;
         MMU mmu;
         bool cb;

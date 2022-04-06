@@ -11,15 +11,16 @@
 #include "serial.h"
 #include "sound.h"
 #include "timer.h"
+#include "cartridge.h"
 
 const uint16_t W_RAM_SIZE = 0x2000;
 
 class MMU {
 
     public:
-        MMU(std::vector<uint8_t> *cartridge): 
+        MMU(Cartridge *cartridge): 
             w_ram(std::vector<uint8_t>(W_RAM_SIZE, 0)),
-            mbc(MBC1(cartridge)),
+            mbc(MBC1(cartridge->data)),
             joypad(Joypad()),
             serial(Serial()),
             timer(Timer()),

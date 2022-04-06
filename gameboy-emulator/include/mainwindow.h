@@ -3,11 +3,12 @@
 
 #include "gameboy.h"
 #include "gui/include/metaCartridge.h"
-#include "gui/include/metaGameboy.h"
 #include <QMainWindow>
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
+
+#include "include/gameboy.h"
 
 #include <QMetaObject>
 #include <QLabel>
@@ -71,7 +72,7 @@ class MainWindow : public QMainWindow
         MetaRegisters *mr;
         MetaCartridge *mc;
         QVBoxLayout *r;
-        MetaGameboy *gb;
+        Gameboy *gb;
 };
 
 #endif // MAINWINDOW_H

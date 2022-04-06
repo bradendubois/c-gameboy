@@ -20,7 +20,7 @@
 #include <QActionGroup>
 
 #include "gui/include/metaRegisters.h"
-#include "gui/include/metaGameboy.h"
+#include "include/gameboy.h"
 
 MainWindow::MainWindow(char *rom) {
     
@@ -34,14 +34,13 @@ MainWindow::MainWindow(char *rom) {
     resize(640, 480);
 
     mr = new MetaRegisters;
-    gb = new MetaGameboy;
+    gb = new Gameboy;
 
-    connect(this, &MainWindow::selectedRom, gb, &MetaGameboy::createGameboy);
-    connect(gb, &MetaGameboy::ready, this, &MainWindow::gameboyReady);
+    connect(this, &MainWindow::selectedRom, gb, &Gameboy::initialize);
+    connect(gb, &Gameboy::ready, this, &MainWindow::gameboyReady);
 
     createMenuBar();
     createDetailsPanel();
-
 
     layout->addLayout(r);
     layout->addLayout(new QVBoxLayout);
@@ -96,16 +95,6 @@ void MainWindow::createMenuBar() {
 
 
 
-
-// void MainWindow::setRom(std::string romName) {
-
-//     std::ifstream instream(std::string(romName), std::ios::in | std::ios::binary);
-//     cartridge = new std::vector<uint8_t>((std::istreambuf_iterator<char>(instream)),       std::istreambuf_iterator<char>());
-//     emit 
-
-// }
-
-
 void MainWindow::createDetailsPanel() {
 
     r = new QVBoxLayout;
@@ -138,6 +127,6 @@ void MainWindow::createPlayerGroup() {
 }
 
 void MainWindow::gameboyReady() {
-    connect(&gb->gameboy->cpu, &CPU::updateRegister, mr, &MetaRegisters::updateRegisters);
-    gb->gameboy->cpu.update();
+    connect(gb->cpu, &CPU::updateRegister, mr, &MetaRegisters::updateRegisters);
+    gb->cpu->update();
 }

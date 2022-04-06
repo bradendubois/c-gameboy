@@ -1,6 +1,3 @@
-// #include "include/cartridge.h"
-#include "include/gameboy.h"
-// #include "include/joypad.h"
 #include "include/mainwindow.h"
 
 #include <fstream>

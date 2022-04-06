@@ -1,9 +1,7 @@
 #include <stdint.h>
 
-#include "../include/cpu.h"
-#include "../include/gameboy.h"
-#include "../include/mmu.h"
-#include "../include/registers.h"
+#include "include/cpu.h"
+#include "include/registers.h"
 
 __uint128_t CPU::opcode(uint8_t opcode) {
 
