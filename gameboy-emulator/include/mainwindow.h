@@ -1,21 +1,20 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "gameboy.h"
-#include "gui/include/metaCartridge.h"
+#include <stdint.h>
+#include <vector>
+
+#include <QMetaObject>
+#include <QLabel>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 #include <QMainWindow>
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
 
 #include "include/gameboy.h"
-
-#include <QMetaObject>
-#include <QLabel>
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <vector>
-#include <stdint.h>
+#include "include/gui_debug.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -51,8 +50,6 @@ class MainWindow : public QMainWindow
 
         void createMenuBar();
 
-        void createDetailsPanel();
-
         void createPlayerGroup();
 
         void createActions();
@@ -69,9 +66,9 @@ class MainWindow : public QMainWindow
         QActionGroup *alignmentGroup;
         QLabel *infoLabel;
 
-        MetaRegisters *mr;
-        MetaCartridge *mc;
-        QVBoxLayout *r;
+        QWidget *widget;
+        QHBoxLayout *layout;
+        GuiDebug *gd;
         Gameboy *gb;
 };
 

@@ -1,14 +1,10 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
+#include <stdint.h>
 #include <vector>
-
-#include "include/mainwindow.h"
 
 #include <QFileDialog>
-#include <vector>
-#include <stdint.h>
-
 #include <QMetaObject>
 #include <QLabel>
 #include <QApplication>
@@ -19,31 +15,26 @@
 #include <QStatusBar>
 #include <QActionGroup>
 
-#include "gui/include/metaRegisters.h"
 #include "include/gameboy.h"
+#include "include/gui_debug.h"
+#include "include/mainwindow.h"
 
-MainWindow::MainWindow(char *rom) {
+MainWindow::MainWindow(char *rom): widget(new QWidget), layout(new QHBoxLayout), gd(new GuiDebug), gb(new Gameboy) {
     
-    QWidget *widget = new QWidget;
     setCentralWidget(widget);
 
-    QHBoxLayout *layout = new QHBoxLayout;
-
     setWindowTitle(tr("Gameboy Emulator"));
-    setMinimumSize(160, 160);
-    resize(640, 480);
-
-    mr = new MetaRegisters;
-    gb = new Gameboy;
+    setMinimumSize(600, 400);
+    resize(800, 600);
 
     connect(this, &MainWindow::selectedRom, gb, &Gameboy::initialize);
     connect(gb, &Gameboy::ready, this, &MainWindow::gameboyReady);
 
-    createMenuBar();
-    createDetailsPanel();
+    connect(gd->gc, &GuiControls::advanceCycles, gb, &Gameboy::advanceCycles);
 
-    layout->addLayout(r);
-    layout->addLayout(new QVBoxLayout);
+    createMenuBar();
+
+    layout->addLayout(gd);
     layout->addLayout(gb);
 
     widget->setLayout(layout);
@@ -95,38 +86,7 @@ void MainWindow::createMenuBar() {
 
 
 
-void MainWindow::createDetailsPanel() {
-
-    r = new QVBoxLayout;
-    r->addWidget(mr);
-    r->addWidget(new MetaCartridge);
-
-
-}
-
-
-void MainWindow::createPlayerGroup() {
-
-    r = new QVBoxLayout;
-
-    QWidget *topFiller = new QWidget;
-    topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    QLabel *t = new QLabel(tr("Some text"));
-    t->setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
-    t->setAlignment(Qt::AlignCenter);
-
-    QWidget *bottomFiller = new QWidget;
-    bottomFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    r->setContentsMargins(5, 5, 5, 5);
-    r->addWidget(topFiller);
-    r->addWidget(t);
-    r->addWidget(bottomFiller);
-
-}
-
 void MainWindow::gameboyReady() {
-    connect(gb->cpu, &CPU::updateRegister, mr, &MetaRegisters::updateRegisters);
+    connect(gb->cpu, &CPU::updateRegister, gd, &GuiDebug::updateRegisters);
     gb->cpu->update();
 }

@@ -2,14 +2,16 @@
 #define CPU_H
 
 #include <stdint.h>
-
-#include "gameboy.h"
-#include "registers.h"
-#include "mmu.h"
-#include "cartridge.h"
-
 #include <vector>
+
 #include <QObject>
+
+#include "include/cartridge.h"
+#include "include/gameboy.h"
+#include "include/gui_debug.h"
+#include "include/mmu.h"
+#include "include/registers.h"
+
 
 class Gameboy;
 

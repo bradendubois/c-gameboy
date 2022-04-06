@@ -1,6 +1,6 @@
 #include "include/cpu.h"
 #include <iostream>
-#include "gui/include/metaRegisters.h"
+
 
 CPU::CPU(Gameboy *parent, Cartridge *cartridge): parent(parent), r(Registers()), mmu(MMU(cartridge)), cb(false), t(0), ime(IME::Disabled) {
 

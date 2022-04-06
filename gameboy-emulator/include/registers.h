@@ -6,7 +6,6 @@
 #include <sstream>
 #include <QObject>
 
-#include "gui/include/metaRegisters.h"
 #include <stdint.h>
 class Registers {
 

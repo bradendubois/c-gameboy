@@ -1,14 +1,27 @@
-#include <stdint.h>
 #include <iostream>
+#include <stdint.h>
 
+#include <QAction>
+#include <QActionGroup>
+#include <QApplication>
+#include <QFileDialog>
+#include <QHBoxLayout>
+#include <QHeaderView>
+#include <QLabel>
+#include <QLatin1Char>
+#include <QMetaObject>
+#include <QObject>
+#include <QPushButton>
+#include <QSpacerItem>
+#include <QStatusBar>
+#include <QString>
 #include <QTableWidget>
 #include <QTableWidgetItem>
-#include <QHeaderView>
-#include <QLatin1Char>
+#include <QVBoxLayout>
 
-#include "gui/include/metaRegisters.h"
+#include "include/gui_debug.h"
 
-MetaRegisters::MetaRegisters(): QTableWidget() {
+GuiRegisters::GuiRegisters(QWidget *parent): QTableWidget(parent) {
 
     setRowCount(5);
     setColumnCount(8);
@@ -59,44 +72,74 @@ MetaRegisters::MetaRegisters(): QTableWidget() {
 
 }
 
-void MetaRegisters::updateRegister(int row, int col, uint16_t value) {
+void GuiRegisters::updateRegister(int row, int col, uint16_t value) {
     item(row, col + 1)->setText(tr("%1").arg(value, 0, 10));
     item(row, col + 2)->setText(tr("%1").arg(value, (row == 4 ? 4 : 2), 16, QLatin1Char('0')));
     item(row, col + 3)->setText(tr("%1").arg(value, 8, 2, QLatin1Char('0')));
 }
 
-void MetaRegisters::updateRegisters(REGISTER_POSITION r, uint16_t value) {
+CycleButton *advanceFactory(uint64_t v) {
+    CycleButton *b = new CycleButton(v);
+    b->setText(QObject::tr("+%1").arg(v));
+    QObject::connect(b, &CycleButton::released, b, &CycleButton::click);
+    return b;
+}
+
+GuiControls::GuiControls(QWidget *parent): QHBoxLayout(parent),
+    b1(advanceFactory(1)), b5(advanceFactory(5)),
+    b100(advanceFactory(100)), b1000(advanceFactory(1000)) {
+
+    connect(b1, &CycleButton::advance, this, &GuiControls::advanceCycles);
+    connect(b5, &CycleButton::advance, this, &GuiControls::advanceCycles);
+    connect(b100, &CycleButton::advance, this, &GuiControls::advanceCycles);
+    connect(b1000, &CycleButton::advance, this, &GuiControls::advanceCycles);
+
+    addWidget(b1);
+    addWidget(b5);
+    addWidget(b100);
+    addWidget(b1000);
+}
+
+
+void GuiDebug::updateRegisters(REGISTER_POSITION r, uint16_t value) {
     switch (r) {
         case R_A:
-            updateRegister(0, 0, value);
+            mr->updateRegister(0, 0, value);
             break;
         case R_F:
-            updateRegister(0, 4, value);
+            mr->updateRegister(0, 4, value);
             break;
         case R_B:
-            updateRegister(1, 0, value);
+            mr->updateRegister(1, 0, value);
             break;
         case R_C:
-            updateRegister(1, 4, value);
+            mr->updateRegister(1, 4, value);
             break;
         case R_D:
-            updateRegister(2, 0, value);
+            mr->updateRegister(2, 0, value);
             break;
         case R_E:
-            updateRegister(2, 4, value);
+            mr->updateRegister(2, 4, value);
             break;
         case R_H:
-            updateRegister(3, 0, value);
+            mr->updateRegister(3, 0, value);
             break;
         case R_L:
-            updateRegister(3, 4, value);
+            mr->updateRegister(3, 4, value);
             break;
         case R_SP:
-            updateRegister(4, 0, value);
+            mr->updateRegister(4, 0, value);
             break;
         case R_PC:
-            updateRegister(4, 4, value);
+            mr->updateRegister(4, 4, value);
             break;
         
     }
+}
+
+GuiDebug::GuiDebug(QWidget *parent): QVBoxLayout(parent), mr(new GuiRegisters), gc(new GuiControls) {
+
+    addWidget(mr);
+    addLayout(gc);
+    addSpacerItem(new QSpacerItem(20, 40, QSizePolicy::Fixed, QSizePolicy::Expanding));
 }

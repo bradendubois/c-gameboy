@@ -35,6 +35,14 @@ void Gameboy::run() {
     cpu->run();
 }
 
+
+void Gameboy::advanceCycles(uint64_t cycles) {
+
+    std::cout << "Hearing " << (int) cycles << " coming up!" << std::endl;
+
+}
+
+
 void Gameboy::updateLocalGUI() {
 
     title->setText(QString::fromStdString("Got a game! " + cartridge->title()));

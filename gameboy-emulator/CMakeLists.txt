@@ -24,14 +24,13 @@ set(CMAKE_AUTORCC ON)
 
 file(GLOB_RECURSE SRC RELATIVE ${CMAKE_SOURCE_DIR} "src/**")
 file(GLOB_RECURSE INCLUDE RELATIVE ${CMAKE_SOURCE_DIR} "include/**")
-file(GLOB_RECURSE GUI RELATIVE ${CMAKE_SOURCE_DIR} "gui/**")
 
 add_executable(gameboy-emu MACOSX_BUNDLE WIN32
-    main.cpp ${INCLUDE} ${SRC} ${GUI}
+    main.cpp ${INCLUDE} ${SRC}
 )
 
 target_include_directories(gameboy-emu
-    PRIVATE include/ src/ gui/ $CMAKE_PREFIX_PATH
+    PRIVATE include/ src/ $CMAKE_PREFIX_PATH
     /opt/homebrew/include/QtCore
     /opt/homebrew/Cellar/qt
 )

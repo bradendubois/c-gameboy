@@ -29,6 +29,9 @@ class Gameboy: public QVBoxLayout {
     signals:
         void ready();
 
+    public slots:
+        void advanceCycles(uint64_t cycles);
+
     private:
         QLabel *title;
 
