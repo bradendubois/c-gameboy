@@ -16,6 +16,9 @@
 #include "include/gameboy.h"
 #include "include/gui_debug.h"
 
+
+class Gameboy;
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE

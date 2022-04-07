@@ -48,7 +48,7 @@ void CPU::halt() {
 }
 
 void CPU::stop() {
-    mmu.write(0xFF04, (uint8_t) 0x00);
+    mmu->write(0xFF04, (uint8_t) 0x00);
     // status = Status::Stopped;
 }
 
@@ -218,15 +218,15 @@ uint16_t CPU::word() {
 }
 
 uint8_t CPU::read(uint16_t address) {
-    uint8_t value = mmu.read(address);
+    uint8_t value = mmu->read(address);
     std::cout << "Retrieved Byte " << std::hex << (int) value << std::dec << std::endl;
     return value;
 }
 
 void CPU::write(uint16_t address, uint8_t value) {
     std::cout << "Writing value " << std::hex << (int) value << std::dec << " to address " << std::hex << address << std::dec << std::endl;
-    mmu.write(address, value);
-    if (read(address) != value) {
+    mmu->write(address, value);
+    if ((address < 0xF000) && read(address) != value) {
         std::cerr << "BAD WRITE " << std::hex << address << " " << value << std::dec << std::endl;
         exit(0);
     }

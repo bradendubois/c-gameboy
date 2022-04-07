@@ -1,6 +1,12 @@
-#include "../include/mmu.h"
+#include <stdint.h>
+
+#include "include/gui_breakpoints.h"
+#include "include/mmu.h"
 
 uint8_t MMU::read(uint16_t address) {
+    if (watchReads.contains(address)) {
+        emit accessHalt(ADDRESS_ACCESS::READ, address);
+    }
     switch (address) {
         case 0x0000 ... 0x7FFF:
             return mbc.read(address);
@@ -38,6 +44,9 @@ uint8_t MMU::read(uint16_t address) {
 }
 
 void MMU::write(uint16_t address, uint8_t value) {
+    if (watchWrites.contains(address)) {
+        emit accessHalt(ADDRESS_ACCESS::WRITE, address);
+    }
     switch (address) {
         case 0x0000 ... 0x7FFF:
             mbc.write(address, value);
@@ -80,5 +89,18 @@ void MMU::write(uint16_t address, uint8_t value) {
             std::cerr << "UNAUTH RAM WRITE " << std::hex << address << std::dec << std::endl;
             exit(0);
             return;
+    }
+}
+
+void MMU::watchAddress(ADDRESS_ACCESS r, uint16_t address) {
+    switch (r) {
+        case ADDRESS_ACCESS::READ:
+            watchReads.insert(address);
+            break;
+        case ADDRESS_ACCESS::WRITE:
+            watchWrites.insert(address);
+            break;
+        default:
+            break;
     }
 }

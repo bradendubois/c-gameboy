@@ -6,16 +6,25 @@
 
 #include <QObject>
 
-#include "include/cartridge.h"
-#include "include/gameboy.h"
-#include "include/gui_debug.h"
+
 #include "include/mmu.h"
+#include "include/gameboy.h"
+#include "include/cartridge.h"
+#include "include/gui_debug.h"
 #include "include/registers.h"
 
+#include "include/mainwindow.h"
+#include "include/gui_breakpoints.h"
 
 class Gameboy;
+class MMU;
 
 enum IME { Enabled, Disabled, OneCycleDelay };
+
+enum ACCESS_HALTED {
+    TRIGGERED,
+    NOT_TRIGGERED
+};
 
 class CPU: public QObject {
 
@@ -23,17 +32,23 @@ class CPU: public QObject {
 
     public:
         CPU(Gameboy *parent, Cartridge *cartridge);
-        void run();
+        void cycle();
         void update();
 
     signals:
         void updateRegister(REGISTER_POSITION r, uint16_t value);
+        void accessHaltSignal(ADDRESS_ACCESS r, uint16_t address);
+
+    public slots:
+        void accessHaltSlot(ADDRESS_ACCESS r, uint16_t address);
 
     private:
+        friend class MainWindow;
+        friend class Gameboy;
 
         Gameboy *parent;
         Registers r;
-        MMU mmu;
+        MMU *mmu;
         bool cb;
         __uint128_t t;
 
@@ -100,6 +115,9 @@ class CPU: public QObject {
         void bit(uint8_t bit, uint8_t v);
         uint8_t res(uint8_t bit, uint8_t v);
         uint8_t set(uint8_t bit, uint8_t v);
+
+        std::set<uint16_t> watchPC;
+        ACCESS_HALTED hit;
 };
 
 #endif

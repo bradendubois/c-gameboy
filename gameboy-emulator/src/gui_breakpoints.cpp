@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <iostream>
 
+#include <QHeaderView>
 #include <QIntValidator>
 #include <QLabel>
 #include <QTabWidget>
@@ -30,7 +31,11 @@ GuiBreakpoints::GuiBreakpoints(QWidget *parent): QWidget(parent), layout(new QVB
     hb->addWidget(pcButton);
     
     layout->addLayout(hb);
-
+    table->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
+    table->verticalHeader()->hide();
+    table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    table->setFocusPolicy(Qt::NoFocus);
+    table->setSelectionMode(QAbstractItemView::NoSelection);
     table->setHorizontalHeaderLabels({"Reason", "Address (dec)", "Address (hex)"});
     table->setColumnWidth(0, 200);
     table->setColumnWidth(1, 100);
@@ -42,21 +47,27 @@ GuiBreakpoints::GuiBreakpoints(QWidget *parent): QWidget(parent), layout(new QVB
 }
 
 void GuiBreakpoints::addRead() {
-    emit addAccess(ADDRESS_ACCESS::READ, le->text().toInt());
-    addTable(ADDRESS_ACCESS::READ, le->text().toInt());
-    le->setText("");
+    if (le->text().size() > 0) {
+        emit addAccess(ADDRESS_ACCESS::READ, le->text().toInt());
+        addTable(ADDRESS_ACCESS::READ, le->text().toInt());
+        le->setText("");
+    }
 }
 
 void GuiBreakpoints::addWrite() {
-    emit addAccess(ADDRESS_ACCESS::WRITE, le->text().toInt());
-    addTable(ADDRESS_ACCESS::WRITE, le->text().toInt());
-    le->setText("");
+    if (le->text().size() > 0) {
+        emit addAccess(ADDRESS_ACCESS::WRITE, le->text().toInt());
+        addTable(ADDRESS_ACCESS::WRITE, le->text().toInt());
+        le->setText("");
+    }
 }
 
 void GuiBreakpoints::addPCAt() {
-    emit addAccess(ADDRESS_ACCESS::PC_AT, le->text().toInt());
-    addTable(ADDRESS_ACCESS::PC_AT, le->text().toInt());
-    le->setText("");
+    if (le->text().size() > 0) {
+        emit addAccess(ADDRESS_ACCESS::PC_AT, le->text().toInt());
+        addTable(ADDRESS_ACCESS::PC_AT, le->text().toInt());
+        le->setText("");
+    }
 }
 
 void GuiBreakpoints::addTable(ADDRESS_ACCESS r, uint16_t v) {
