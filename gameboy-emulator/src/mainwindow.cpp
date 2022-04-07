@@ -31,6 +31,7 @@ MainWindow::MainWindow(char *rom): widget(new QWidget), layout(new QHBoxLayout),
     connect(gb, &Gameboy::ready, this, &MainWindow::gameboyReady);
 
     connect(gd->gc, &GuiControls::advanceCycles, gb, &Gameboy::advanceCycles);
+    connect(gd->bp, &GuiBreakpoints::addAccess, gb, &Gameboy::setBreakpointOn);
 
     createMenuBar();
 

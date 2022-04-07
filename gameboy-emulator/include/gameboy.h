@@ -4,7 +4,7 @@
 #include "cartridge.h"
 #include "cpu.h"
 #include "mmu.h"
-
+#include "include/gui_debug.h"
 #include <vector>
 
 #include <QVBoxLayout>
@@ -31,6 +31,8 @@ class Gameboy: public QVBoxLayout {
 
     public slots:
         void advanceCycles(uint64_t cycles);
+        void setBreakpointOn(ADDRESS_ACCESS accessType, uint16_t address);
+        void removeBreakpointOn(ADDRESS_ACCESS accessType, uint16_t address);
 
     private:
         QLabel *title;

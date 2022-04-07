@@ -15,11 +15,14 @@
 #include <QSpacerItem>
 #include <QStatusBar>
 #include <QString>
+#include <QTabWidget>
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QVBoxLayout>
 
 #include "include/gui_debug.h"
+#include "include/gui_history.h"
+#include "include/gui_breakpoints.h"
 
 GuiRegisters::GuiRegisters(QWidget *parent): QTableWidget(parent) {
 
@@ -137,9 +140,14 @@ void GuiDebug::updateRegisters(REGISTER_POSITION r, uint16_t value) {
     }
 }
 
-GuiDebug::GuiDebug(QWidget *parent): QVBoxLayout(parent), mr(new GuiRegisters), gc(new GuiControls) {
+GuiDebug::GuiDebug(QWidget *parent): QVBoxLayout(parent), mr(new GuiRegisters), gc(new GuiControls), tabs(new QTabWidget), gh(new GuiHistory), bp(new GuiBreakpoints) {
 
     addWidget(mr);
     addLayout(gc);
+
+    tabs->addTab(gh, "History");
+    tabs->addTab(bp, "Breakpoints");
+    addWidget(tabs);
+
     addSpacerItem(new QSpacerItem(20, 40, QSizePolicy::Fixed, QSizePolicy::Expanding));
 }

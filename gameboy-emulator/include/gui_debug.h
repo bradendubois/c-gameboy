@@ -5,10 +5,14 @@
 #include <iostream>
 
 #include <QLabel>
+#include <QTabWidget>
 #include <QTableWidget>
 #include <QVBoxLayout>
 #include <QAbstractButton>
 #include <QPushButton>
+
+#include "include/gui_breakpoints.h"
+#include "include/gui_history.h"
 
 enum REGISTER_POSITION {
     R_A,
@@ -22,7 +26,6 @@ enum REGISTER_POSITION {
     R_SP,
     R_PC
 };
-
 
 class CycleButton: public QPushButton {
 
@@ -79,6 +82,11 @@ class GuiDebug: public QVBoxLayout {
         GuiDebug(QWidget *parent = nullptr);
         GuiRegisters *mr;
         GuiControls *gc;
+
+        QTabWidget *tabs;
+        GuiHistory *gh;
+        GuiBreakpoints *bp;
+
 
     // signals:
     //     advanceCycles(uint64_t cycles);

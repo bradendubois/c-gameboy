@@ -5,6 +5,7 @@
 
 #include "include/gameboy.h"
 #include "include/cpu.h"
+#include "include/gui_debug.h"
 
 #include <QVBoxLayout>
 #include <QString>
@@ -39,6 +40,17 @@ void Gameboy::run() {
 void Gameboy::advanceCycles(uint64_t cycles) {
 
     std::cout << "Hearing " << (int) cycles << " coming up!" << std::endl;
+
+}
+
+void Gameboy::setBreakpointOn(ADDRESS_ACCESS accessType, uint16_t address) {
+
+    std::cout << "Breakpoint on " << (int) address << " marked!" << std::endl;
+
+}
+
+void Gameboy::removeBreakpointOn(ADDRESS_ACCESS accessType, uint16_t address) {
+    std::cout << "Breakpoint on " << (int) address << " Removed!" << std::endl;
 
 }
 
