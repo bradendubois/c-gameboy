@@ -13,6 +13,7 @@
 #include <QMenu>
 #include <QAction>
 
+#include "include/cpu.h"
 #include "include/gameboy.h"
 #include "include/gui_debug.h"
 

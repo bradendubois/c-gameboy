@@ -7,8 +7,9 @@
 #include <QObject>
 
 
+class MMU;
+
 #include "include/mmu.h"
-#include "include/gameboy.h"
 #include "include/cartridge.h"
 #include "include/gui_debug.h"
 #include "include/registers.h"
@@ -16,8 +17,6 @@
 #include "include/mainwindow.h"
 #include "include/gui_breakpoints.h"
 
-class Gameboy;
-class MMU;
 
 enum IME { Enabled, Disabled, OneCycleDelay };
 
@@ -31,7 +30,7 @@ class CPU: public QObject {
     Q_OBJECT
 
     public:
-        CPU(Gameboy *parent, Cartridge *cartridge);
+        CPU(MMU *mmu);
         void cycle();
         void update();
 
@@ -46,7 +45,6 @@ class CPU: public QObject {
         friend class MainWindow;
         friend class Gameboy;
 
-        Gameboy *parent;
         Registers r;
         MMU *mmu;
         bool cb;

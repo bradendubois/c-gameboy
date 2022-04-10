@@ -2,7 +2,7 @@
 #include <iostream>
 
 
-CPU::CPU(Gameboy *parent, Cartridge *cartridge): parent(parent), r(Registers()), mmu(new MMU(cartridge)), cb(false), t(0), ime(IME::Disabled), hit(NOT_TRIGGERED) {
+CPU::CPU(MMU *mmu): r(Registers()), mmu(mmu), cb(false), t(0), ime(IME::Disabled), hit(NOT_TRIGGERED) {
 
     update();
 

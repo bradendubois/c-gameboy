@@ -9,37 +9,29 @@
 #include <QObject>
 
 #include "include/gui_breakpoints.h"
-#include "include/gameboy.h"
 #include "joypad.h"
 #include "mbc.h"
 #include "mbc1.h"
 #include "serial.h"
 #include "sound.h"
 #include "timer.h"
-#include "cartridge.h"
+#include "include/cartridge.h"
+#include "include/cpu.h"
+#include "include/ppu.h"
+#include "include/cartridge.h"
 
+class CPU;
 
-const uint16_t W_RAM_SIZE = 0x2000;
+constexpr uint16_t W_RAM_SIZE = 0x2000;
+constexpr uint16_t H_RAM_SIZE = 0x7E;
+constexpr uint16_t OAM_SIZE = 0xA0;
 
 class MMU: public QObject {
 
     Q_OBJECT
 
     public:
-        MMU(Cartridge *cartridge): 
-            w_ram(std::vector<uint8_t>(W_RAM_SIZE, 0)),
-            mbc(MBC1(cartridge->data)),
-            joypad(Joypad()),
-            serial(Serial()),
-            timer(Timer()),
-            sound(Sound())
-            {
-
-    // Joypad j = Joypad();
-
-    // QObject::connect(&w, &MainWindow::pressed, &j, &Joypad::receivePress);
-
-            };
+        MMU(QObject *parent, Cartridge *cartridge);
 
         uint8_t  byte(uint16_t address);
         uint16_t word(uint16_t address);
@@ -54,11 +46,20 @@ class MMU: public QObject {
     signals:
         void accessHalt(ADDRESS_ACCESS r, uint16_t address);
 
+    protected:
+        friend class CPU;
+        friend class PPU;
+
+        CPU *cpu;
+        PPU *ppu;
+
     private:
-        friend class Gameboy;
+        MBC1 mbc;
 
         std::vector<uint8_t> w_ram; 
-        MBC1 mbc;
+        std::vector<uint8_t> h_ram;
+        std::vector<uint8_t> oam;
+
         Joypad joypad;
         Serial serial;
         Timer timer;
@@ -67,5 +68,8 @@ class MMU: public QObject {
         std::set<uint16_t> watchReads;
         std::set<uint16_t> watchWrites;
 };
+
+
+#include "include/ppu.h"
 
 #endif

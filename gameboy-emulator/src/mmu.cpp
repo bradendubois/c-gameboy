@@ -1,7 +1,20 @@
 #include <stdint.h>
 
+
+#include "include/cpu.h"
 #include "include/gui_breakpoints.h"
 #include "include/mmu.h"
+#include "include/ppu.h"
+
+
+MMU::MMU(QObject *parent, Cartridge *cartridge): QObject(parent), mbc(MBC1(cartridge->data)), w_ram(std::vector<uint8_t>(W_RAM_SIZE, 0)), h_ram(std::vector<uint8_t>(H_RAM_SIZE, 0)), oam(std::vector<uint8_t>(OAM_SIZE, 0)), joypad(Joypad()), serial(Serial()), timer(Timer()), sound(Sound())
+{
+
+    // Joypad j = Joypad();
+
+    // QObject::connect(&w, &MainWindow::pressed, &j, &Joypad::receivePress);
+
+}
 
 uint8_t MMU::read(uint16_t address) {
     if (watchReads.contains(address)) {
@@ -10,6 +23,8 @@ uint8_t MMU::read(uint16_t address) {
     switch (address) {
         case 0x0000 ... 0x7FFF:
             return mbc.read(address);
+        case 0x8000 ... 0x9FFF:
+            return ppu->read(address);
         case 0xA000 ... 0xBFFF:
             return mbc.read(address);
         case 0xC000 ... 0xDFFF:
@@ -17,8 +32,8 @@ uint8_t MMU::read(uint16_t address) {
         case 0xE000 ... 0xFDFF:
             return read(address & 0xDDFF);
         case 0xFE00 ... 0xFE9F:
-            return 0;
-        case 0xFEA0 ... 0xFEFF:
+            return oam[address & 0x9F];
+        case 0xFEA0 ... 0xFEFF: // prohibited
             return 0;
         case 0xFF00 ... 0xFF7F: {
             switch (address) {
@@ -28,6 +43,8 @@ uint8_t MMU::read(uint16_t address) {
                     return serial.read(address);
                 case 0xFF04 ... 0xFF07:
                     return timer.read(address);
+                case 0xFF40 ... 0xFF4B:
+                    return ppu->read(address);
                 default:
                     return 0;
             }
@@ -61,8 +78,9 @@ void MMU::write(uint16_t address, uint8_t value) {
             write(address & 0xDDFF, value);
             break;
         case 0xFE00 ... 0xFE9F:
+            oam[address & 0x9F] = value;
             break;
-        case 0xFEA0 ... 0xFEFF:
+        case 0xFEA0 ... 0xFEFF: // prohibited
             break;
         case 0xFF00 ... 0xFF7F: {
             switch (address) {
@@ -74,6 +92,9 @@ void MMU::write(uint16_t address, uint8_t value) {
                     break;
                 case 0xFF04 ... 0xFF07:
                     timer.write(address, value);
+                    break;
+                case 0xFF40 ... 0xFF4B:
+                    ppu->write(address, value);
                     break;
                 default:
                     return;

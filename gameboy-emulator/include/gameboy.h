@@ -3,17 +3,21 @@
 
 #include <vector>
 
+#include <QGraphicsView>
 #include <QVBoxLayout>
 #include <QObject>
 #include <QLabel>
-
-
-#include "include/mmu.h"
-#include "include/cartridge.h"
-#include "include/cpu.h"
-#include "include/gui_debug.h"
+#include <QImage>
+#include <QGraphicsScene>
 
 class CPU;
+class PPU;
+
+#include "include/cpu.h"
+#include "include/mmu.h"
+#include "include/cartridge.h"
+#include "include/ppu.h"
+#include "include/gui_debug.h"
 
 class Gameboy: public QVBoxLayout {
 
@@ -22,7 +26,10 @@ class Gameboy: public QVBoxLayout {
     public:
         Gameboy(QWidget *parent = nullptr);
 
+        MMU *mmu;
         CPU *cpu;
+        PPU *ppu;
+    
         Cartridge *cartridge;
 
         void initialize(std::string romPath);
@@ -38,7 +45,7 @@ class Gameboy: public QVBoxLayout {
         void accessHalt(ADDRESS_ACCESS r, uint16_t address);
 
     private:
-        QLabel *title;
+        QLabel *displayLabel;
         bool checkCycleCount;
         int cycleCount;
 
