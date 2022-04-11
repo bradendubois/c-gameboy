@@ -36,13 +36,53 @@ void Gameboy::initialize(std::string romPath) {
     // display->fill(Qt::GlobalColor::blue);
     ppu = new PPU(mmu, displayLabel);
 
+    std::vector<uint8_t> a{0xFF, 0x00, 0x7E, 0xFF, 0x85, 0x81, 0x89, 0x83, 0x93, 0x85, 0xA5, 0x8B, 0xC9, 0x97, 0x7E, 0xFF};
+    std::vector<uint8_t> b{0x7C, 0x7C, 0x00, 0xC6, 0xC6, 0x00, 0x00, 0xFE, 0xC6, 0xC6, 0x00, 0xC6, 0xC6, 0x00, 0x00, 0x00};
+    std::vector<uint8_t> *c = &a;
+
+    bool flip = false;
+    for (int i = 0; i < 256; i++) {
+        std::cout << std::hex << "Starting write at " << (int) 0x8800 + (i * 16) << std::dec << std::endl;
+        if (i % 32 == 0) { c = (c == &a ? &b : &a); }
+        for (int k = 0; k < 16; ++k) {
+            mmu->write(0x8800 + (i * 16) + k, c->at(k));
+        }
+        c = (c == &a ? &b : &a);
+    }
+
+
+    for (int i = 0; i < 16; i++) {
+        if (i % 32 == 0) { c = (c == &a ? &b : &a); }
+        std::cout << std::hex << "Starting write at " << (int) 0x8000 + (i * 16) << std::dec << std::endl;
+        for (int k = 0; k < 16; ++k) {
+            
+            mmu->write(0x8000 + (i * 16) + k, c->at(k));
+        }
+        c = (c == &a ? &b : &a);
+    }
+    // ppu->updateBackground();
+
+    mmu->write(0xC000, (uint8_t) 45);
+    mmu->write(0xC001, (uint8_t) 155);
+    mmu->write(0xC002, (uint8_t) 1);
+    mmu->write(0xC003, (uint8_t) 0b00000000);
+
+    mmu->write(0xC004, (uint8_t) 200);
+    mmu->write(0xC005, (uint8_t) 80);
+    mmu->write(0xC006, (uint8_t) 1);
+    mmu->write(0xC007, (uint8_t) 0b01100000);
+
+    ppu->initiateOAMTransfer(0xC0);
+    ppu->updateSprites();
+
     emit ready();
 }
 
 void Gameboy::run() {
     while (!checkCycleCount || cycleCount > 0) {
         std::cout << (int) cycleCount << std::endl;
-        cpu->cycle();
+        auto v = cpu->cycle();
+        ppu->cycle(v);   // TODO - conversion to keep things synced
         if (checkCycleCount && (cycleCount > 0)) {
             --cycleCount;
         }

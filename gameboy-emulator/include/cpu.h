@@ -31,7 +31,7 @@ class CPU: public QObject {
 
     public:
         CPU(MMU *mmu);
-        void cycle();
+        uint64_t cycle();
         void update();
 
     signals:

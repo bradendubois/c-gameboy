@@ -32,7 +32,7 @@ uint8_t MMU::read(uint16_t address) {
         case 0xE000 ... 0xFDFF:
             return read(address & 0xDDFF);
         case 0xFE00 ... 0xFE9F:
-            return oam[address & 0x9F];
+            return oam[address & 0xFF];
         case 0xFEA0 ... 0xFEFF: // prohibited
             return 0;
         case 0xFF00 ... 0xFF7F: {
@@ -64,9 +64,13 @@ void MMU::write(uint16_t address, uint8_t value) {
     if (watchWrites.contains(address)) {
         emit accessHalt(ADDRESS_ACCESS::WRITE, address);
     }
+
     switch (address) {
         case 0x0000 ... 0x7FFF:
             mbc.write(address, value);
+            break;
+        case 0x8000 ... 0x9FFF:
+            ppu->write(address, value);
             break;
         case 0xA000 ... 0xBFFF:
             mbc.write(address, value);
@@ -78,7 +82,8 @@ void MMU::write(uint16_t address, uint8_t value) {
             write(address & 0xDDFF, value);
             break;
         case 0xFE00 ... 0xFE9F:
-            oam[address & 0x9F] = value;
+            std::cout << std::hex << "OAM WRITE " << (int) (address & 0xFF) << std::dec << std::endl;
+            oam[address & 0xFF] = value;
             break;
         case 0xFEA0 ... 0xFEFF: // prohibited
             break;

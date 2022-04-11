@@ -9,9 +9,10 @@ CPU::CPU(MMU *mmu): r(Registers()), mmu(mmu), cb(false), t(0), ime(IME::Disabled
     connect(mmu, &MMU::accessHalt, this, &CPU::accessHaltSlot);
 }
 
-void CPU::cycle() {
-    opcode(byte());
+uint64_t CPU::cycle() {
+    auto v = opcode(byte());
     update();
+    return v;
 }
 
 

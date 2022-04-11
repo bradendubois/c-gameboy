@@ -15,7 +15,6 @@
 #include "serial.h"
 #include "sound.h"
 #include "timer.h"
-#include "include/cartridge.h"
 #include "include/cpu.h"
 #include "include/ppu.h"
 #include "include/cartridge.h"

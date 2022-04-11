@@ -7,6 +7,11 @@
 
 #include "include/mmu.h"
 
+constexpr uint8_t DISPLAY_W = 160;
+constexpr uint8_t DISPLAY_H = 144;
+
+constexpr uint16_t BACKGROUND_N = 256;
+
 enum TILE_MAP_AREA {
     _9800_9BFF,
     _9C00_9FFF
@@ -24,6 +29,18 @@ enum PPU_MODE {
     _3_OAM_TRANSFER = 3
 };
 
+enum BG_OR_WINDOW {
+    BG,
+    WINDOW
+};
+
+struct OAM_Entry {
+    uint8_t y;
+    uint8_t x;
+    QImage* img;
+    uint8_t flags;
+};
+
 class PPU: public QObject {
 
     Q_OBJECT
@@ -32,11 +49,18 @@ class PPU: public QObject {
         PPU(MMU *mmu, QLabel *displayLabel);
         uint8_t read(uint16_t address);
         void write(uint16_t address, uint8_t value);
+        void cycle(uint64_t cycles);
+
+        void updateBackground();
+        void updateSprites();
+        void initiateOAMTransfer(uint8_t addr_half);
 
     private:
         MMU *mmu;
         QPixmap *pix;
-        QImage *img;
+
+        QImage *img;        
+        
         std::vector<uint8_t> v_ram;
 
         uint8_t ff40, ff41,
@@ -70,6 +94,28 @@ class PPU: public QObject {
         PPU_MODE MODE;                          // bit 1
 
         // make each window operate separately here
+
+        QImage *backgroundImage;
+        QImage *windowImage;
+
+        // ***
+
+        QLabel *displayLabel;
+        uint64_t dots;
+
+        void renderLine();
+
+        void renderBackWin(BG_OR_WINDOW o);
+        void renderSprites();
+
+        void updateWindow();
+
+
+        QImage* generate8(uint16_t address);
+
+        std::vector<QImage*> oam_cache;
+        bool needOAMRevalidation; 
+        void computeOAM();
 };
 
 #endif
