@@ -82,7 +82,7 @@ void MMU::write(uint16_t address, uint8_t value) {
             write(address & 0xDDFF, value);
             break;
         case 0xFE00 ... 0xFE9F:
-            std::cout << std::hex << "OAM WRITE " << (int) (address & 0xFF) << std::dec << std::endl;
+            // std::cout << std::hex << "OAM WRITE " << (int) (address & 0xFF) << std::dec << std::endl;
             oam[address & 0xFF] = value;
             break;
         case 0xFEA0 ... 0xFEFF: // prohibited

@@ -46,6 +46,8 @@ class Gameboy: public QVBoxLayout {
 
     private:
         QLabel *displayLabel;
+        QLabel *backgroundLabel;
+        QLabel *windowLabel;
         bool checkCycleCount;
         int cycleCount;
 

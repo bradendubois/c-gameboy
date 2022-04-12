@@ -18,8 +18,10 @@ class MMU;
 #include <QImage>
 #include <QPixmap>
 
-Gameboy::Gameboy(QWidget *parent): QVBoxLayout(parent), displayLabel(new QLabel), checkCycleCount(false), cycleCount(0) {
+Gameboy::Gameboy(QWidget *parent): QVBoxLayout(parent), displayLabel(new QLabel), windowLabel(new QLabel), backgroundLabel(new QLabel), checkCycleCount(false), cycleCount(0) {
     addWidget(displayLabel);
+    addWidget(backgroundLabel);
+    addWidget(windowLabel);
     connect(this, &Gameboy::ready, this, &Gameboy::updateLocalGUI);
 }
 
@@ -34,7 +36,7 @@ void Gameboy::initialize(std::string romPath) {
     mmu = new MMU(this, cartridge);
     cpu = new CPU(mmu);
     // display->fill(Qt::GlobalColor::blue);
-    ppu = new PPU(mmu, displayLabel);
+    ppu = new PPU(mmu, displayLabel, windowLabel, backgroundLabel);
 
     std::vector<uint8_t> a{0xFF, 0x00, 0x7E, 0xFF, 0x85, 0x81, 0x89, 0x83, 0x93, 0x85, 0xA5, 0x8B, 0xC9, 0x97, 0x7E, 0xFF};
     std::vector<uint8_t> b{0x7C, 0x7C, 0x00, 0xC6, 0xC6, 0x00, 0x00, 0xFE, 0xC6, 0xC6, 0x00, 0xC6, 0xC6, 0x00, 0x00, 0x00};
@@ -53,7 +55,7 @@ void Gameboy::initialize(std::string romPath) {
 
     for (int i = 0; i < 16; i++) {
         if (i % 32 == 0) { c = (c == &a ? &b : &a); }
-        std::cout << std::hex << "Starting write at " << (int) 0x8000 + (i * 16) << std::dec << std::endl;
+        // std::cout << std::hex << "Starting write at " << (int) 0x8000 + (i * 16) << std::dec << std::endl;
         for (int k = 0; k < 16; ++k) {
             
             mmu->write(0x8000 + (i * 16) + k, c->at(k));
@@ -67,13 +69,18 @@ void Gameboy::initialize(std::string romPath) {
     mmu->write(0xC002, (uint8_t) 1);
     mmu->write(0xC003, (uint8_t) 0b00000000);
 
-    mmu->write(0xC004, (uint8_t) 200);
+    mmu->write(0xC004, (uint8_t) 140);
     mmu->write(0xC005, (uint8_t) 80);
     mmu->write(0xC006, (uint8_t) 1);
     mmu->write(0xC007, (uint8_t) 0b01100000);
 
     ppu->initiateOAMTransfer(0xC0);
-    ppu->updateSprites();
+    // ppu->updateSprites();
+
+    ppu->cycle(70224);
+    std::cout << "1" << std::endl;
+    ppu->cycle(70224);
+    std::cout << "2" << std::endl;
 
     emit ready();
 }

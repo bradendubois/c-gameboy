@@ -46,13 +46,10 @@ class PPU: public QObject {
     Q_OBJECT
 
     public:
-        PPU(MMU *mmu, QLabel *displayLabel);
+        PPU(MMU *mmu, QLabel *displayLabel, QLabel *windowLabel, QLabel *backgroundLabel);
         uint8_t read(uint16_t address);
         void write(uint16_t address, uint8_t value);
         void cycle(uint64_t cycles);
-
-        void updateBackground();
-        void updateSprites();
         void initiateOAMTransfer(uint8_t addr_half);
 
     private:
@@ -95,26 +92,35 @@ class PPU: public QObject {
 
         // make each window operate separately here
 
+        QImage *composite;
         QImage *backgroundImage;
         QImage *windowImage;
 
         // ***
 
         QLabel *displayLabel;
+        QLabel *backgroundLabel;
+        QLabel *windowLabel;
         uint64_t dots;
 
-        void renderLine();
+        void renderLine(uint8_t ly);
 
-        void renderBackWin(BG_OR_WINDOW o);
-        void renderSprites();
+        void renderBackWin(BG_OR_WINDOW o, uint8_t ly);
+        void renderSprites(uint8_t ly);
+        void renderOpaque();
 
-        void updateWindow();
-
+        void generateBackground();
+        void generateWindow();
 
         QImage* generate8(uint16_t address);
 
         std::vector<QImage*> oam_cache;
+        // std::vector<QImage*> bg_cache;
+        
         bool needOAMRevalidation; 
+        bool needBackgroundRevalidation;
+        bool needWindowRevalidation;
+
         void computeOAM();
 };
 
