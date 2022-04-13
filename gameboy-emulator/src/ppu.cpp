@@ -9,18 +9,14 @@
 PPU::PPU(MMU *mmu, QLabel *displayLabel, QLabel *windowLabel, QLabel *backgroundLabel): mmu(mmu), pix(new QPixmap), displayLabel(displayLabel), windowLabel(windowLabel), backgroundLabel(backgroundLabel), img(new QImage(160, 144, QImage::Format_RGBA64)), v_ram(std::vector<uint8_t>(0x2000, 0)), ff40(0), ff41(0), ff42(0), ff43(0), ff44(0), ff45(0), ff47(0), ff48(0), ff49(0), ff4a(0), ff4b(0), dots(0), oam_cache(std::vector<QImage*>(40, nullptr)), needOAMRevalidation(true), needBackgroundRevalidation(true), needWindowRevalidation(true) {
     mmu->ppu = this;
 
-    // QImage *img = new QImage(160, 144, QImage::Format::Format_ARGB32);
-    
-    // backgroundImage = new QImage(160, 144, QImage::Format::Format_ARGB32);
     composite = new QImage(160, 144, QImage::Format::Format_ARGB32);
     backgroundImage = new QImage(256, 256, QImage::Format::Format_ARGB32);
-    windowImage = new QImage(160, 144, QImage::Format::Format_ARGB32);
-    
+    windowImage = new QImage(256, 256, QImage::Format::Format_ARGB32);
+
     composite->fill(Qt::white);
     backgroundImage->fill(Qt::white);
 
     // Only drawing background while testing
-    // displayLabel->setPixmap(QPixmap::fromImage(*img));
     displayLabel->setPixmap(QPixmap::fromImage(*composite));
     backgroundLabel->setPixmap(QPixmap::fromImage(*backgroundImage));
 
@@ -69,55 +65,53 @@ void PPU::write(uint16_t address, uint8_t value) {
 
 
 void PPU::cycle(uint64_t cycles) {
-    auto x = cycles; // * 4;    // TODO - if scale cpu instrs, don't mul this
-
-    int mode = -1;
-    while (x--) {
+    auto x = (int) cycles;
+    while (x-- > 0) {
         dots++;
-
-        switch (dots) {
-            case 0 ... 80: {
-                if (mode != 0) {
-                if (needOAMRevalidation) {
-                    computeOAM();
+        if (ff44 < DISPLAY_H) {
+            switch (dots) {
+                case 0 ... 80: {
+                    if (MODE != PPU_MODE::_2_OAM_SEARCH) {
+                        if (needOAMRevalidation) { computeOAM(); }
+                        MODE = PPU_MODE::_2_OAM_SEARCH;
+                    }
+                    break;
                 }
-                mode = 0;
+                case 81 ... 252: {
+                    if (MODE != PPU_MODE::_3_OAM_TRANSFER) {
+                        if (ff44 < DISPLAY_H) {
+                            renderLine(ff44);
+                        }
+                        MODE = PPU_MODE::_3_OAM_TRANSFER;
+                    }
+                    break;
                 }
-                break;
+                case 253 ... 456: {
+                    if (MODE != PPU_MODE::_0_HBLANK) {
+                        MODE = PPU_MODE::_0_HBLANK;
+                    }
+                    break;
+                }
+                default:
+                    break;
             }
-            case 81 ... 252: {
-                if (mode != 1) {
-                if (ff44 < DISPLAY_H) {
-                    renderLine(ff44);
-                }
-                mode = 1;
-                }
-                break;
+        } else {
+            if (MODE != PPU_MODE::_1_VBLANK) {
+                displayLabel->setPixmap(QPixmap::fromImage(*composite));
+                MODE = PPU_MODE::_1_VBLANK;
             }
-            case 253 ... 456: {
-                break;
-            }
-            default:
-                break;
         }
 
         // end of scanline
         if (dots >= 456) {
             dots %= 456;
             ff44++;
-            continue;
         }
 
-        // reset at top
+        // reset to top
         if (ff44 >= 154) {
             ff44 %= 154;
-
-        // in a vblank mode, no actions
-        } else if (ff44 >= 144) {
-
         }
-
-        // std::cout << (int) ff44 << std::endl;
     }
 } 
 
@@ -129,7 +123,8 @@ void PPU::renderLine(uint8_t ly) {
 
     renderSprites(ly);
     
-    displayLabel->setPixmap(QPixmap::fromImage(*composite).scaled(displayLabel->size(), Qt::KeepAspectRatio));
+    // displayLabel->setPixmap(QPixmap::fromImage(*composite));
+    // displayLabel->setPixmap(QPixmap::fromImage(*composite).scaled(displayLabel->size(), Qt::KeepAspectRatio));
     
 }
 
@@ -187,7 +182,8 @@ void PPU::generateWindow() {
         }
     }
 
-    backgroundLabel->setPixmap(QPixmap::fromImage(*backgroundImage).scaled(backgroundLabel->size(), Qt::KeepAspectRatio));
+    // backgroundLabel->setPixmap(QPixmap::fromImage(*backgroundImage));
+    // backgroundLabel->setPixmap(QPixmap::fromImage(*backgroundImage).scaled(backgroundLabel->size(), Qt::KeepAspectRatio));
     needBackgroundRevalidation = false;
 }
 

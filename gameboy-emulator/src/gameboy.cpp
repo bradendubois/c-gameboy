@@ -78,18 +78,14 @@ void Gameboy::initialize(std::string romPath) {
     // ppu->updateSprites();
 
     ppu->cycle(70224);
-    std::cout << "1" << std::endl;
-    ppu->cycle(70224);
-    std::cout << "2" << std::endl;
 
     emit ready();
 }
 
 void Gameboy::run() {
     while (!checkCycleCount || cycleCount > 0) {
-        std::cout << (int) cycleCount << std::endl;
         auto v = cpu->cycle();
-        ppu->cycle(v);   // TODO - conversion to keep things synced
+        ppu->cycle(v * 4);
         if (checkCycleCount && (cycleCount > 0)) {
             --cycleCount;
         }
@@ -125,10 +121,7 @@ void Gameboy::removeBreakpointOn(ADDRESS_ACCESS accessType, uint16_t address) {
 
 
 void Gameboy::updateLocalGUI() {
-
-    // title->setText(QString::fromStdString("Got a game! " + cartridge->title()));
     connect(cpu, &CPU::accessHaltSignal, this, &Gameboy::accessHalt);
-
 }
 
 void Gameboy::accessHalt(ADDRESS_ACCESS r, uint16_t address) {
