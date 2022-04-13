@@ -90,17 +90,19 @@ CycleButton *advanceFactory(uint64_t v) {
 
 GuiControls::GuiControls(QWidget *parent): QHBoxLayout(parent),
     b1(advanceFactory(1)), b5(advanceFactory(5)),
-    b100(advanceFactory(100)), b1000(advanceFactory(1000)) {
+    b100(advanceFactory(100)), b1000(advanceFactory(1000)), b1000000(advanceFactory(10000)) {
 
     connect(b1, &CycleButton::advance, this, &GuiControls::advanceCycles);
     connect(b5, &CycleButton::advance, this, &GuiControls::advanceCycles);
     connect(b100, &CycleButton::advance, this, &GuiControls::advanceCycles);
     connect(b1000, &CycleButton::advance, this, &GuiControls::advanceCycles);
+    connect(b1000000, &CycleButton::advance, this, &GuiControls::advanceCycles);
 
     addWidget(b1);
     addWidget(b5);
     addWidget(b100);
     addWidget(b1000);
+    addWidget(b1000000);
 }
 
 

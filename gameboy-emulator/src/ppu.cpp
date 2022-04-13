@@ -2,6 +2,7 @@
 #include <QGraphicsView>
 #include <QImage>
 
+
 #include "include/ppu.h"
 #include <math.h>
 #include <time.h>
@@ -9,6 +10,11 @@
 PPU::PPU(MMU *mmu, QLabel *displayLabel, QLabel *windowLabel, QLabel *backgroundLabel): mmu(mmu), pix(new QPixmap), displayLabel(displayLabel), windowLabel(windowLabel), backgroundLabel(backgroundLabel), img(new QImage(160, 144, QImage::Format_RGBA64)), v_ram(std::vector<uint8_t>(0x2000, 0)), ff40(0), ff41(0), ff42(0), ff43(0), ff44(0), ff45(0), ff47(0), ff48(0), ff49(0), ff4a(0), ff4b(0), dots(0), oam_cache(std::vector<QImage*>(40, nullptr)), needOAMRevalidation(true), needBackgroundRevalidation(true), needWindowRevalidation(true) {
     mmu->ppu = this;
 
+    ADDRESSING_MODE = BG_WINDOW_TILE_AREA::_8800_97FF;
+    WINDOW_ENABLE = false;
+    BACKGROUND_TMA = _9800_9BFF;
+    PPU_ENABLED = true;
+    OBJ_ENABLED = true;
     composite = new QImage(160, 144, QImage::Format::Format_ARGB32);
     backgroundImage = new QImage(256, 256, QImage::Format::Format_ARGB32);
     windowImage = new QImage(256, 256, QImage::Format::Format_ARGB32);
@@ -44,6 +50,35 @@ uint8_t PPU::read(uint16_t address) {
     switch (address) {
         case 0x8000 ... 0x9FFF:
             return v_ram[address - 0x8000];
+        case 0xFF40:
+            return ff40;
+        case 0xFF41: {
+            uint8_t r = ff41;
+            if (ff44 == ff45) r |= 0x04;
+            if (MODE == _3_OAM_TRANSFER) r |= 0x03;
+            if (MODE == _2_OAM_SEARCH) r |= 0x02;
+            if (MODE == _1_VBLANK) r |= 0x01;
+            return r;
+        }
+        case 0xFF42:
+            return ff42;
+        case 0xFF43:
+            return ff43;
+        case 0xFF44:
+            return ff44;
+        case 0xFF45:
+            return ff45;
+        case 0xFF47:
+            return ff47;
+        case 0xFF48:
+            return ff48;
+        case 0xFF49:
+            return ff49;
+        case 0xFF4A:
+            return ff4a;
+        case 0xFF4B:
+            return ff4b;
+        
         default:
             std::cerr << "Impossible PPU read address " << (int) address << std::endl;
             return 0;
@@ -54,7 +89,53 @@ uint8_t PPU::read(uint16_t address) {
 void PPU::write(uint16_t address, uint8_t value) {
     switch (address) {
         case 0x8000 ... 0x9FFF:
+            std::cout << std::hex << (int) (address - 0x8000) << " " << (int) value << std::dec << std::endl;
             v_ram[address - 0x8000] = value;
+            break;
+        case 0xFF40:
+            ff40 = value;
+            PPU_ENABLED = (value & 0x80) != 0;
+            WINDOW_TMA = ((value & 0x40) == 0 ? _9800_9BFF : _9C00_9FFF);
+            WINDOW_ENABLE = (value & 0x20) != 0;
+            ADDRESSING_MODE = ((value & 0x10) == 0 ? _8800_97FF : _8000_8FFF);
+            BACKGROUND_TMA = ((value & 0x08) == 0 ? _9800_9BFF : _9C00_9FFF);
+            STACKED_OBJ = (value & 0x04) != 0;
+            OBJ_ENABLED = (value & 0x02) != 0;
+            BG_WINDOW_ENABLE_PRIORITY = (value & 0x01) != 0;
+            break;
+        case 0xFF41:
+            ff41 = value & !0x04;
+            LYC_LY_INTERRUPT = (value & 0x40) != 0;
+            MODE_2_OAM_STAT_INTERRUPT = (value & 0x20) != 0;
+            MODE_1_VBLANK_INTERRUPT = (value & 0x10) != 0;
+            MODE_0_HBLANK_INTERRUPT = (value & 0x08) != 0;
+            break;
+        case 0xFF42:
+            ff42 = value;
+            break;
+        case 0xFF43:
+            ff43 = value;
+            break;
+        case 0xFF44:
+            ff44 = value;
+            break;
+        case 0xFF45:
+            ff45 = value;
+            break;
+        case 0xFF47:
+            ff47 = value;
+            break;
+        case 0xFF48:
+            ff48 = value;
+            break;
+        case 0xFF49:
+            ff49 = value;
+            break;
+        case 0xFF4A:
+            ff4a = value;
+            break;
+        case 0xFF4B:
+            ff4b = value;
             break;
         default:
             std::cerr << "Impossible PPU write address " << std::hex << (int) address << std::dec << std::endl;
@@ -75,6 +156,9 @@ void PPU::cycle(uint64_t cycles) {
                         if (needOAMRevalidation) { computeOAM(); }
                         MODE = PPU_MODE::_2_OAM_SEARCH;
                     }
+                    if (MODE_2_OAM_STAT_INTERRUPT) {
+                        mmu->ffff |= 0x02;
+                    }
                     break;
                 }
                 case 81 ... 252: {
@@ -90,6 +174,9 @@ void PPU::cycle(uint64_t cycles) {
                     if (MODE != PPU_MODE::_0_HBLANK) {
                         MODE = PPU_MODE::_0_HBLANK;
                     }
+                    if (MODE_0_HBLANK_INTERRUPT) {
+                       mmu->ffff |= 0x02;       
+                    }
                     break;
                 }
                 default:
@@ -97,8 +184,15 @@ void PPU::cycle(uint64_t cycles) {
             }
         } else {
             if (MODE != PPU_MODE::_1_VBLANK) {
-                displayLabel->setPixmap(QPixmap::fromImage(*composite));
+                if (PPU_ENABLED) {
+                    std::cout << "RENDER" << std::endl;
+                    displayLabel->setPixmap(QPixmap::fromImage(*composite).scaled(displayLabel->size(), Qt::KeepAspectRatio));
+                }
                 MODE = PPU_MODE::_1_VBLANK;
+                mmu->ffff |= 0x01;
+            }
+            if (MODE_1_VBLANK_INTERRUPT) {
+                mmu->ffff |= 0x02;       
             }
         }
 
@@ -106,6 +200,9 @@ void PPU::cycle(uint64_t cycles) {
         if (dots >= 456) {
             dots %= 456;
             ff44++;
+            if (LYC_LY_INTERRUPT && (ff44 == ff45)) {
+                mmu->ffff |= 0x02;
+            }
         }
 
         // reset to top
@@ -116,65 +213,74 @@ void PPU::cycle(uint64_t cycles) {
 } 
 
 void PPU::renderLine(uint8_t ly) {
-    // if (WINDOW_ENABLE)
-        // renderBackWin(BG_OR_WINDOW::WINDOW, ly);
-    // else
-    renderBackWin(BG_OR_WINDOW::BG, ly);
 
-    renderSprites(ly);
+    bool *revalidate;
+    uint8_t y, x, x_bias;
+    int bank;
+    QImage *img;
+
+    // only perform a scanline for either the window OR background
+    if (WINDOW_ENABLE)
+    {
+        revalidate = &needWindowRevalidation;
+        y = ff4a;
+        x = ff4b;
+        x_bias = 8;
+        bank = (WINDOW_TMA == _9800_9BFF ? 0 : 1);
+        img = windowImage;
+    }
+    else
+    {
+        revalidate = &needBackgroundRevalidation;
+        y = ff42;
+        x = ff43;
+        x_bias = 0;
+        bank = (BACKGROUND_TMA == _9800_9BFF ? 0 : 1);
+        img = backgroundImage;
     
+        uint8_t r = y + ly;
+        for (uint8_t c = 0; c < DISPLAY_W; ++c) {
+            backgroundImage->setPixel(c - x_bias, ly, img->pixel(x + c, r));
+            backgroundLabel->setPixmap(QPixmap::fromImage(*backgroundImage));
+            // backgroundLabel->setPixmap(QPixmap::fromImage(*backgroundImage).scaled(backgroundLabel->size(), Qt::KeepAspectRatio));
+        }
+    }
+
+    if (*revalidate) {
+        cacheImage(bank, img);
+        *revalidate = false;
+    }
+
+    uint8_t row = y + ly;
+    for (int c = 0; c < DISPLAY_W; ++c) {
+        if (c - x_bias < 0) continue;
+        composite->setPixel(c - x_bias, ly, img->pixel(x + c, row));
+    }
+
+    if (OBJ_ENABLED) renderSprites(ly);
+
     // displayLabel->setPixmap(QPixmap::fromImage(*composite));
     // displayLabel->setPixmap(QPixmap::fromImage(*composite).scaled(displayLabel->size(), Qt::KeepAspectRatio));
-    
-}
 
-void PPU::renderBackWin(BG_OR_WINDOW o, uint8_t ly) {
-
-    (void) o;
-
-    if (needBackgroundRevalidation) { std::cout << "Generating window" << std::endl; generateWindow(); }
-
-    uint8_t row = ff42 + ly;
-    for (uint8_t c = 0; c < DISPLAY_W; ++c) {
-        composite->setPixel(c, ly, backgroundImage->pixel(ff43 + c, row));
-    }
-    // TILE_MAP_AREA tileMapArea = (o == BG_OR_WINDOW::WINDOW ? WINDOW_TMA : BACKGROUND_TMA);    
-    // int base = (ADDRESSING_MODE == BG_WINDOW_TILE_AREA::_8800_97FF ? 0x1000 : 0x0000)
-    // bool sign = ADDRESSING_MODE == BG_WINDOW_TILE_AREA::_8800_97FF;
-
-    // for (i = 0; i < SCREEN_W; ++i) {
-    //     uint8_t viewportY = (o == BG_OR_WINDOW::WINDOW ? ff4a : ff42) + x;
-    //     uint8_t viewportX = (o == BG_OR_WINDOW::WINDOW ? ff4b : ff43) + x;
-
-    //     uint8_t ty = (viewportY >> 3) & 0x1F;
-    //     uint8_t tx = (viewportX >> 3) & 0x1F;
-    //     int tile = (ty * 32) + tx;
-    //     int tile_base = base + ((sign ? (iint8_t) tile : tile) * 32);
-    //     std::vector<uint8_t> tileData{v_ram[base], v_ram[base+1], v_ram[base+2], v_ram[base+3]};
-
-    // }
 }
 
 
-void PPU::generateWindow() {
+void PPU::cacheImage(int bank, QImage *dst) {
 
-    ADDRESSING_MODE = BG_WINDOW_TILE_AREA::_8800_97FF;
-
-    int tileMapArea = (BACKGROUND_TMA == TILE_MAP_AREA::_9800_9BFF ? 0 : 1);
     int base = (ADDRESSING_MODE == BG_WINDOW_TILE_AREA::_8800_97FF ? 0x1000 : 0x0000);
     bool sign = ADDRESSING_MODE == BG_WINDOW_TILE_AREA::_8800_97FF;
 
+    QImage *result;
     for (uint8_t row = 0; row < 32; ++row) {
         for (uint8_t col = 0; col < 32; ++col) {
-            int tileNumber = (row * 32) + col;
+            int tileNumber = (int) v_ram[(bank == 0 ? 0x1800 : 0x1C00) + ((row * 32) + col)];
             int tile_base = base + ((sign ? ((int8_t) tileNumber) : tileNumber) * 16);
-            // std::cout << "Tile base: " << std::hex << tile_base << std::dec << std::endl;
-            QImage *result = generate8(tile_base);
+            
+            result = generate8(tile_base);
 
             for (uint8_t i = 0; i < 8; i++) {
                 for (uint8_t j = 0; j < 8; j++) {
-                    backgroundImage->setPixel(col * 8 + i, row * 8 + j, result->pixel(i, j));
-                    backgroundImage->setPixel(i, j, result->pixel(i, j));
+                    dst->setPixel(col * 8 + i, row * 8 + j, result->pixel(i, j));
                 }
             }
 
@@ -184,7 +290,6 @@ void PPU::generateWindow() {
 
     // backgroundLabel->setPixmap(QPixmap::fromImage(*backgroundImage));
     // backgroundLabel->setPixmap(QPixmap::fromImage(*backgroundImage).scaled(backgroundLabel->size(), Qt::KeepAspectRatio));
-    needBackgroundRevalidation = false;
 }
 
 

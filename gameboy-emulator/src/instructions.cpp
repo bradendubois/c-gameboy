@@ -116,11 +116,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
         case 0x20: {
             int8_t s8 = byte();
             if (!r.flag_z()) {
-                std::cout << "Before " << (int) s8 << std::endl;
-                std::cout << r._pc << std::endl;
                 jr(s8);
-                std::cout << r._pc << std::endl;
-
                 return 42;
             }
             return 8;

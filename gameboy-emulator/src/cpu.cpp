@@ -4,12 +4,47 @@
 
 CPU::CPU(MMU *mmu): r(Registers()), mmu(mmu), cb(false), t(0), ime(IME::Disabled), hit(NOT_TRIGGERED) {
 
+    isr = ISR::INACTIVE;
     update();
 
     connect(mmu, &MMU::accessHalt, this, &CPU::accessHaltSlot);
 }
 
 uint64_t CPU::cycle() {
+
+    if (isr != ISR::INACTIVE) {
+        if (isr == ISR::NOPS) {
+            isr = ISR::PUSH;
+            return 2;
+        } else if (isr == ISR::PUSH) {
+            push(r._pc);
+            isr = ISR::JMP;
+            return 2;
+        } else {
+            call(handler);
+            isr = ISR::INACTIVE;
+            return 1;
+        }
+    }
+
+    if (ime == IME::Enabled) {
+        int n;
+        for (int i = 0; i < 5; ++i) {
+            n = (1 << i);
+            if (n & mmu->ff0f & mmu->ffff) {
+                ime = IME::Disabled;
+                isr = ISR::NOPS;
+                mmu->ff0f &= !n;
+                handler = 0x0040 | (i << 3);
+                return 0;
+            }
+        }
+    }
+
+    if (ime == IME::OneCycleDelay) {
+        ime = IME::Enabled;
+    }
+
     auto v = opcode(byte());
     update();
     return v;

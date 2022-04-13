@@ -213,27 +213,27 @@ uint8_t CPU::byte() {
 
 uint16_t CPU::word() {
     uint16_t v = ((uint16_t) byte()) | (((uint16_t) byte()) << 8);
-    std::cout << "Retrieved Word " << std::hex << (int) v << std::dec << std::endl;
+    // std::cout << "Retrieved Word " << std::hex << (int) v << std::dec << std::endl;
     return v;
 }
 
 uint8_t CPU::read(uint16_t address) {
     uint8_t value = mmu->read(address);
-    std::cout << "Retrieved Byte " << std::hex << (int) value << std::dec << std::endl;
+    // std::cout << "Retrieved Byte " << std::hex << (int) value << std::dec << std::endl;
     return value;
 }
 
 void CPU::write(uint16_t address, uint8_t value) {
-    std::cout << "Writing value " << std::hex << (int) value << std::dec << " to address " << std::hex << address << std::dec << std::endl;
+    // std::cout << "Writing value " << std::hex << (int) value << std::dec << " to address " << std::hex << address << std::dec << std::endl;
     mmu->write(address, value);
     if ((address < 0xF000) && read(address) != value) {
-        std::cerr << "BAD WRITE " << std::hex << address << " " << value << std::dec << std::endl;
+        // std::cerr << "BAD WRITE " << std::hex << address << " " << value << std::dec << std::endl;
         exit(0);
     }
 }
 
 void CPU::write(uint16_t address, uint16_t value) {
-    std::cout << "16 bit write" << std::endl;
+    // std::cout << "16 bit write" << std::endl;
     write(address, (uint8_t) value);
     write(address + 1, (uint8_t) (value >> 8));
 }

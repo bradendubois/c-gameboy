@@ -81,7 +81,7 @@ class PPU: public QObject {
         bool OBJ_ENABLED;                       // bit 1
         bool BG_WINDOW_ENABLE_PRIORITY;         // bit 0
 
-        // 0xFF41 - LCDY
+        // 0xFF41 - LCDS
         bool LYC_LY_INTERRUPT;                  // bit 6
         bool MODE_2_OAM_STAT_INTERRUPT;         // bit 5
         bool MODE_1_VBLANK_INTERRUPT;           // bit 4
@@ -104,13 +104,8 @@ class PPU: public QObject {
         uint64_t dots;
 
         void renderLine(uint8_t ly);
-
-        void renderBackWin(BG_OR_WINDOW o, uint8_t ly);
         void renderSprites(uint8_t ly);
-        void renderOpaque();
-
-        void generateBackground();
-        void generateWindow();
+        void cacheImage(int bank, QImage *dst);
 
         QImage* generate8(uint16_t address);
 

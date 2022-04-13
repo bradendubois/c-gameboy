@@ -71,6 +71,7 @@ class GuiControls: public QHBoxLayout {
         CycleButton *b5;
         CycleButton *b100;
         CycleButton *b1000;
+        CycleButton *b1000000;
 };
 
 

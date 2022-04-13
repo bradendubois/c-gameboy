@@ -90,14 +90,4 @@ void MainWindow::createMenuBar() {
 void MainWindow::gameboyReady() {
     connect(gb->cpu, &CPU::updateRegister, gd, &GuiDebug::updateRegisters);
     gb->cpu->update();
-
-    std::cout << "Ok" << std::endl;
-    
-    for (int i = 0; i < 480; i++) {
-        std::cout << i << std::endl;
-        gb->advanceCycles(1);
-    }
-
-    std::cout << "Done" << std::endl;
-    std::exit(0);
 }

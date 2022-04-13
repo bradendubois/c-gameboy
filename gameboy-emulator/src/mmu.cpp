@@ -9,6 +9,7 @@
 
 MMU::MMU(QObject *parent, Cartridge *cartridge): QObject(parent), mbc(MBC1(cartridge->data)), w_ram(std::vector<uint8_t>(W_RAM_SIZE, 0)), h_ram(std::vector<uint8_t>(H_RAM_SIZE, 0)), oam(std::vector<uint8_t>(OAM_SIZE, 0)), joypad(Joypad()), serial(Serial()), timer(Timer()), sound(Sound())
 {
+    ff0f = ffff = 0;
 
     // Joypad j = Joypad();
 
@@ -43,6 +44,8 @@ uint8_t MMU::read(uint16_t address) {
                     return serial.read(address);
                 case 0xFF04 ... 0xFF07:
                     return timer.read(address);
+                case 0xFF0F:
+                    return ff0f;
                 case 0xFF40 ... 0xFF4B:
                     return ppu->read(address);
                 default:
@@ -51,8 +54,8 @@ uint8_t MMU::read(uint16_t address) {
         }
         case 0xFF80 ... 0xFFFE:
             return 0;
-        case 0xFFFF ... 0xFFFF:
-            return 0;
+        case 0xFFFF:
+            return ffff;
 
         default:
             std::cerr << "UNAUTH RAM READ " << std::hex << address << std::dec << std::endl;
@@ -82,7 +85,6 @@ void MMU::write(uint16_t address, uint8_t value) {
             write(address & 0xDDFF, value);
             break;
         case 0xFE00 ... 0xFE9F:
-            // std::cout << std::hex << "OAM WRITE " << (int) (address & 0xFF) << std::dec << std::endl;
             oam[address & 0xFF] = value;
             break;
         case 0xFEA0 ... 0xFEFF: // prohibited
@@ -98,8 +100,14 @@ void MMU::write(uint16_t address, uint8_t value) {
                 case 0xFF04 ... 0xFF07:
                     timer.write(address, value);
                     break;
+                case 0xFF0F:
+                    ff0f = value;
+                    break;
                 case 0xFF40 ... 0xFF4B:
                     ppu->write(address, value);
+                    break;
+                case 0xFFFF:
+                    ffff = value;
                     break;
                 default:
                     return;

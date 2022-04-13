@@ -59,6 +59,8 @@ class MMU: public QObject {
         std::vector<uint8_t> h_ram;
         std::vector<uint8_t> oam;
 
+        uint8_t ff0f, ffff;
+
         Joypad joypad;
         Serial serial;
         Timer timer;

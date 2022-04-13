@@ -25,6 +25,13 @@ enum ACCESS_HALTED {
     NOT_TRIGGERED
 };
 
+enum ISR {
+    INACTIVE,
+    NOPS,
+    PUSH,
+    JMP
+};
+
 class CPU: public QObject {
 
     Q_OBJECT
@@ -116,6 +123,9 @@ class CPU: public QObject {
 
         std::set<uint16_t> watchPC;
         ACCESS_HALTED hit;
+
+        ISR isr;
+        uint8_t handler;
 };
 
 #endif

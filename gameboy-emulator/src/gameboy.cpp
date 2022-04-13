@@ -27,7 +27,7 @@ Gameboy::Gameboy(QWidget *parent): QVBoxLayout(parent), displayLabel(new QLabel)
 
 void Gameboy::initialize(std::string romPath) {
 
-    // Add some cleanup here if swapping games
+    // TODO Add some cleanup here if swapping games
 
     std::ifstream instream(std::string(romPath), std::ios::in | std::ios::binary);
     std::vector<uint8_t> *data = new std::vector<uint8_t>((std::istreambuf_iterator<char>(instream)), std::istreambuf_iterator<char>());
@@ -35,7 +35,6 @@ void Gameboy::initialize(std::string romPath) {
     cartridge = new Cartridge(data);
     mmu = new MMU(this, cartridge);
     cpu = new CPU(mmu);
-    // display->fill(Qt::GlobalColor::blue);
     ppu = new PPU(mmu, displayLabel, windowLabel, backgroundLabel);
 
     std::vector<uint8_t> a{0xFF, 0x00, 0x7E, 0xFF, 0x85, 0x81, 0x89, 0x83, 0x93, 0x85, 0xA5, 0x8B, 0xC9, 0x97, 0x7E, 0xFF};
@@ -62,7 +61,15 @@ void Gameboy::initialize(std::string romPath) {
         }
         c = (c == &a ? &b : &a);
     }
-    // ppu->updateBackground();
+
+    for (int i = 0; i < 32; i++) {
+        for (int j = 0; j < 32; j++) {
+            mmu->write(0x9800 | (i * 32) + j, (uint8_t) ((j % 2 == 0 ? 2 : 1)));
+            if (mmu->read(0x9800 | (i * 32) + j) != (uint8_t) ((j % 2 == 0 ? 2 : 1))) {
+                std::cout << "ERR " << std::hex << (0x9800 | (i * 32) + j) << " " << (int) mmu->read(0x9800 | (i * 32) + j) << std::dec << std::endl; 
+            }
+        }
+    }
 
     mmu->write(0xC000, (uint8_t) 45);
     mmu->write(0xC001, (uint8_t) 155);
@@ -75,9 +82,6 @@ void Gameboy::initialize(std::string romPath) {
     mmu->write(0xC007, (uint8_t) 0b01100000);
 
     ppu->initiateOAMTransfer(0xC0);
-    // ppu->updateSprites();
-
-    ppu->cycle(70224);
 
     emit ready();
 }
