@@ -18,7 +18,8 @@
 #include "include/gameboy.h"
 #include "include/gui_debug.h"
 #include "include/mainwindow.h"
-
+#include "include/gui_viewer.h"
+#ifndef DEBUG
 MainWindow::MainWindow(char *rom): widget(new QWidget), layout(new QHBoxLayout), gd(new GuiDebug), gb(new Gameboy) {
     
     setCentralWidget(widget);
@@ -58,7 +59,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent *e) {
 
 
 void MainWindow::setFile() {
-    QString rom = QFileDialog::getOpenFileName(this, tr("Open Image"), "~", tr("ROM Files (*.rom *gb"));
+    QString rom = QFileDialog::getOpenFileName(this, tr("Open Image"), "~", tr("ROM Files (*rom *gb"));
     emit selectedRom(rom.toStdString());
 }
 
@@ -90,4 +91,8 @@ void MainWindow::createMenuBar() {
 void MainWindow::gameboyReady() {
     connect(gb->cpu, &CPU::updateRegister, gd, &GuiDebug::updateRegisters);
     gb->cpu->update();
+    connect(gb->ppu, &PPU::updateTile, gd->gv, &GuiViewer::receiveImage);
+
 }
+
+#endif

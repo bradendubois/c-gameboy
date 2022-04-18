@@ -11,6 +11,7 @@ void Joypad::write(uint8_t v) {
     ff00 = (v & 0x30) | (ff00 & 0x0F);
 }
 
+#ifndef DEBUG
 void Joypad::receivePress(QKeyEvent *e) {
     
     uint8_t b = 255;
@@ -65,3 +66,4 @@ void Joypad::receivePress(QKeyEvent *e) {
 
     std::cout << (int) ff00 << std::endl;
 }
+#endif

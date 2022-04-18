@@ -57,13 +57,19 @@ class Registers {
             return "0x" + ss.str();
         }
 
+        std::string decout(int digits, uint16_t value) {
+            std::ostringstream ss;
+            ss << std::setfill('0') << std::setw(digits) << std::dec << value;
+            return "d" + ss.str();
+        }
+
         std::string toString() {
             return
-                " A:   " + hexout(2, _a)  + " |  F   " + hexout(2, _f) + "\n" +
-                " B:   " + hexout(2, _b)  + " |  C   " + hexout(2, _c) + "\n" +
-                " D:   " + hexout(2, _d)  + " |  E   " + hexout(2, _e) + "\n" +
-                " H:   " + hexout(2, _h)  + " |  L   " + hexout(2, _l) + "\n" +
-                "PC: " + hexout(4, _pc) + " | SP " + hexout(4, _sp) + "\n";
+                " A:   " + hexout(2, _a)  + " " + decout(2, _a) + " |  F   " + hexout(2, _f) + " " + decout(2, _f) + "\n" +
+                " B:   " + hexout(2, _b)  + " " + decout(2, _b) + " |  C   " + hexout(2, _c) + " " + decout(2, _c) + "\n" +
+                " D:   " + hexout(2, _d)  + " " + decout(2, _d) + " |  E   " + hexout(2, _e) + " " + decout(2, _e) + "\n" +
+                " H:   " + hexout(2, _h)  + " " + decout(2, _h) + " |  L   " + hexout(2, _l) + " " + decout(2, _l) + "\n" +
+                "PC: " + hexout(4, _pc) + " " + decout(4, _pc) + " | SP " + hexout(4, _sp) + " " + decout(4, _sp) + "\n";
         }
 
 };

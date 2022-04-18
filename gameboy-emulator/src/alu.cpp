@@ -8,13 +8,17 @@
 #include <stdint.h>
 
 void CPU::push(uint16_t v) {
+    // if (v == 0x0169) {
+        // std::cout << "Writing it too!" << std::endl;
+    // }
     r._sp -= 2;
-    write(r._sp, v);
+    write(r._sp, (uint16_t) v);
 }
 
 uint16_t CPU::pop() {
-    uint16_t v = read(r._sp);
+    uint16_t v = ((uint16_t) read(r._sp + 1)) << 8 | ((uint16_t) read(r._sp));
     r._sp += 2;
+    // std::cout << "POP " << std::hex << (int) v << std::dec << std::endl;
     return v;
 }
 
@@ -26,7 +30,9 @@ void CPU::call(uint16_t v) {
 }
 
 void CPU::ret() {
-    r._pc = pop();
+    auto v = pop();
+    // std::cout << "RET " << std::hex << (int) v << std::dec << std::endl;
+    r._pc = v;
 }
 
 void CPU::rst(uint8_t v) {
@@ -152,9 +158,7 @@ void CPU::a_and(uint8_t v) {
 
 void CPU::a_cp(uint8_t v) {
     uint8_t restore = r._a;
-    if (a_sub(v) == 0) {
-        r.flag_z(false);
-    }
+    a_sub(v);
     r._a = restore;
 }
 
@@ -226,10 +230,6 @@ uint8_t CPU::read(uint16_t address) {
 void CPU::write(uint16_t address, uint8_t value) {
     // std::cout << "Writing value " << std::hex << (int) value << std::dec << " to address " << std::hex << address << std::dec << std::endl;
     mmu->write(address, value);
-    if ((address < 0xF000) && read(address) != value) {
-        // std::cerr << "BAD WRITE " << std::hex << address << " " << value << std::dec << std::endl;
-        exit(0);
-    }
 }
 
 void CPU::write(uint16_t address, uint16_t value) {

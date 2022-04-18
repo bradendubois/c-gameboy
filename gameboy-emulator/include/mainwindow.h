@@ -1,6 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#ifndef DEBUG
 #include <stdint.h>
 #include <vector>
 
@@ -75,5 +76,5 @@ class MainWindow : public QMainWindow
         GuiDebug *gd;
         Gameboy *gb;
 };
-
+#endif // DEBUG
 #endif // MAINWINDOW_H

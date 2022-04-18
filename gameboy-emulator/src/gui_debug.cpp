@@ -132,10 +132,10 @@ void GuiDebug::updateRegisters(REGISTER_POSITION r, uint16_t value) {
         case R_L:
             mr->updateRegister(3, 4, value);
             break;
-        case R_SP:
+        case R_PC:
             mr->updateRegister(4, 0, value);
             break;
-        case R_PC:
+        case R_SP:
             mr->updateRegister(4, 4, value);
             break;
         
@@ -146,10 +146,14 @@ GuiDebug::GuiDebug(QWidget *parent): QVBoxLayout(parent), mr(new GuiRegisters), 
 
     addWidget(mr);
     addLayout(gc);
+    
+    gv = new GuiViewer;
 
     tabs->addTab(gh, "History");
     tabs->addTab(bp, "Breakpoints");
     addWidget(tabs);
+
+    addWidget(gv);
 
     addSpacerItem(new QSpacerItem(20, 40, QSizePolicy::Fixed, QSizePolicy::Expanding));
 }

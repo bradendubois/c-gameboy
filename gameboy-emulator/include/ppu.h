@@ -4,7 +4,7 @@
 #include <QImage>
 #include <QGraphicsScene>
 #include <QObject>
-
+#include "include/gui_viewer.h"
 #include "include/mmu.h"
 
 constexpr uint8_t DISPLAY_W = 160;
@@ -41,23 +41,34 @@ struct OAM_Entry {
     uint8_t flags;
 };
 
+#ifdef DEBUG
+class PPU {
+#else
 class PPU: public QObject {
-
     Q_OBJECT
+#endif
 
     public:
+        #ifdef DEBUG
+        PPU(MMU *mmu);
+        #else
         PPU(MMU *mmu, QLabel *displayLabel, QLabel *windowLabel, QLabel *backgroundLabel);
+        #endif
+        ~PPU() = default;
+
         uint8_t read(uint16_t address);
         void write(uint16_t address, uint8_t value);
         void cycle(uint64_t cycles);
         void initiateOAMTransfer(uint8_t addr_half);
 
+    #ifndef DEBUG
+    signals:
+        void updateTile(QImage *img, uint8_t n, PPU_LAYER layer);
+    #endif
+
     private:
         MMU *mmu;
-        QPixmap *pix;
 
-        QImage *img;        
-        
         std::vector<uint8_t> v_ram;
 
         uint8_t ff40, ff41,
@@ -92,6 +103,7 @@ class PPU: public QObject {
 
         // make each window operate separately here
 
+        #ifndef DEBUG
         QImage *composite;
         QImage *backgroundImage;
         QImage *windowImage;
@@ -101,15 +113,20 @@ class PPU: public QObject {
         QLabel *displayLabel;
         QLabel *backgroundLabel;
         QLabel *windowLabel;
+        #endif
+
         uint64_t dots;
 
+        #ifndef DEBUG
         void renderLine(uint8_t ly);
+        #endif
         void renderSprites(uint8_t ly);
-        void cacheImage(int bank, QImage *dst);
+        void cacheImage(int bank, QImage *dst, PPU_LAYER layer);
 
-        QImage* generate8(uint16_t address);
-
+        #ifndef DEBUG
+        QImage* generate8(uint16_t address, uint8_t palette, bool useTransparency = false);
         std::vector<QImage*> oam_cache;
+        #endif
         // std::vector<QImage*> bg_cache;
         
         bool needOAMRevalidation; 

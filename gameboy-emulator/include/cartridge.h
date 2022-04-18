@@ -33,6 +33,10 @@ class Cartridge {
             global_checksum((c->at(0x014E) << 8) | c->at(0x014F))
         {};
 
+        ~Cartridge() {
+            // delete data;
+        };
+
         std::string toString() {
             return "Title: " + _title;
         }

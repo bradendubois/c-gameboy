@@ -10,7 +10,6 @@
 class MMU;
 
 #include "include/mmu.h"
-#include "include/cartridge.h"
 #include "include/gui_debug.h"
 #include "include/registers.h"
 
@@ -32,29 +31,37 @@ enum ISR {
     JMP
 };
 
+#ifdef DEBUG
+class CPU {
+#else
 class CPU: public QObject {
-
     Q_OBJECT
+#endif
 
     public:
         CPU(MMU *mmu);
+        ~CPU() = default;
         uint64_t cycle();
         void update();
+        uint64_t cycles;
 
+    #ifndef DEBUG
     signals:
         void updateRegister(REGISTER_POSITION r, uint16_t value);
         void accessHaltSignal(ADDRESS_ACCESS r, uint16_t address);
 
     public slots:
         void accessHaltSlot(ADDRESS_ACCESS r, uint16_t address);
+    #endif
 
     private:
         friend class MainWindow;
         friend class Gameboy;
 
+        bool halted;
+
         Registers r;
         MMU *mmu;
-        bool cb;
         __uint128_t t;
 
         __uint128_t opcode(uint8_t opcode);

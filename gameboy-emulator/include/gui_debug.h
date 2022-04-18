@@ -13,6 +13,7 @@
 
 #include "include/gui_breakpoints.h"
 #include "include/gui_history.h"
+#include "include/gui_viewer.h"
 
 enum REGISTER_POSITION {
     R_A,
@@ -88,6 +89,7 @@ class GuiDebug: public QVBoxLayout {
         GuiHistory *gh;
         GuiBreakpoints *bp;
 
+        GuiViewer *gv;
 
     // signals:
     //     advanceCycles(uint64_t cycles);

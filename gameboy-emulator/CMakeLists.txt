@@ -36,10 +36,11 @@ target_include_directories(gameboy-emu
 )
 
 target_compile_options(gameboy-emu PRIVATE -Wall -Wextra)
-
 target_link_libraries(gameboy-emu PRIVATE Qt6::Widgets Qt6::Multimedia Qt6::MultimediaWidgets)
 
 set_target_properties(gameboy-emu PROPERTIES
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
 )
+
+add_compile_definitions(DEBUG)
