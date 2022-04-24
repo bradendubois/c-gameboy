@@ -1,6 +1,5 @@
 #include <stdint.h>
 
-
 #include "include/cpu.h"
 #include "include/gui_breakpoints.h"
 #include "include/mmu.h"
@@ -10,34 +9,20 @@
 #include "include/ppu.h"
 
 
-MBC* mbcFactory(std::vector<uint8_t> *data) {
-    switch (data->at(0x147)) {
-        case 0x00:
-            // std::cout << "MBC0" << std::endl;
-            return new MBC0(data);
-        case 0x01 ... 0x03:
-            // std::cout << "MBC1" << std::endl;
-            return new MBC1(data);
-        default:
-            std::cerr << "Unknown MBC type " << (int) data->at(0x147) << std::endl;
-            exit(1);
-    }
-}
-
 MMU::~MMU() {
-    std::cout << "Deleting MBC" << std::endl;
-    delete mbc;
-    std::cout << "Deleting CPU" << std::endl;
+    // std::cout << "Deleting Cartridge" << std::endl;
+    delete cartridge;
+    // std::cout << "Deleting CPU" << std::endl;
     delete cpu;
-    std::cout << "Deleting PPU" << std::endl;
+    // std::cout << "Deleting PPU" << std::endl;
     delete ppu;
-    std::cout << "Deleting Joypad" << std::endl;
+    // std::cout << "Deleting Joypad" << std::endl;
     delete joypad;
-    std::cout << "Deleting Serial" << std::endl;
+    // std::cout << "Deleting Serial" << std::endl;
     delete serial;
-    std::cout << "Deleting Sound" << std::endl;
+    // std::cout << "Deleting Sound" << std::endl;
     delete sound;
-    std::cout << "Done MMU Delete" << std::endl;
+    // std::cout << "Done MMU Delete" << std::endl;
 };
 
 #ifndef DEBUG
@@ -55,7 +40,7 @@ MMU::MMU(QObject *parent, std::vector<uint8_t> *data): QObject(parent), w_ram(st
 #else
 MMU::MMU(std::vector<uint8_t> *data): w_ram(std::vector<uint8_t>(W_RAM_SIZE, 0)), h_ram(std::vector<uint8_t>(H_RAM_SIZE, 0)), oam(std::vector<uint8_t>(OAM_SIZE, 0))
 {
-    mbc = mbcFactory(data);
+    cartridge = new Cartridge(data);
     cpu = new CPU(this);
     ppu = new PPU(this);
     timer = new Timer(this);
@@ -81,11 +66,11 @@ uint8_t MMU::read(uint16_t address) {
     }
     switch (address) {
         case 0x0000 ... 0x7FFF:
-            return mbc->read(address);
+            return cartridge->mbc->read(address);
         case 0x8000 ... 0x9FFF:
             return ppu->read(address);
         case 0xA000 ... 0xBFFF:
-            return mbc->read(address);
+            return cartridge->mbc->read(address);
         case 0xC000 ... 0xDFFF:
             return w_ram[address & (W_RAM_SIZE - 1)];
         case 0xE000 ... 0xFDFF:
@@ -130,14 +115,14 @@ void MMU::write(uint16_t address, uint8_t value) {
 
     switch (address) {
         case 0x0000 ... 0x7FFF:
-            mbc->write(address, value);
+            cartridge->mbc->write(address, value);
             break;
         case 0x8000 ... 0x9FFF:
             // std::cout << "PPU WRITE" << std::endl;
             ppu->write(address, value);
             break;
         case 0xA000 ... 0xBFFF:
-            mbc->write(address, value);
+            cartridge->mbc->write(address, value);
             break;
         case 0xC000 ... 0xDFFF:
             w_ram[address & (W_RAM_SIZE - 1)] = value;
@@ -167,7 +152,9 @@ void MMU::write(uint16_t address, uint8_t value) {
                 case 0xFF10 ... 0xFF3F:
                     // sound->write(address, value);
                     break;
-                case 0xFF40 ... 0xFF4F:
+                case 0xFF40 ... 0xFF4B:
+                case 0xFF4D:
+                case 0xFF4F:
                     ppu->write(address, value);
                     break;
                 case 0xFF50:

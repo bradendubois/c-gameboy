@@ -11,10 +11,10 @@ class Registers {
 
     public:
         Registers(): 
-            _a((uint8_t) 0x11), _f((uint8_t) 0xB0),
-            _b((uint8_t) 0x00), _c((uint8_t) 0x13),
-            _d((uint8_t) 0x00), _e((uint8_t) 0xD8),
-            _h((uint8_t) 0x01), _l((uint8_t) 0x4D),
+            _a((uint8_t) 0x01), _f((uint8_t) 0x00),
+            _b((uint8_t) 0xFF), _c((uint8_t) 0x13),
+            _d((uint8_t) 0x00), _e((uint8_t) 0xC1),
+            _h((uint8_t) 0x84), _l((uint8_t) 0x03),
             _pc((uint16_t) 0x0100), _sp((uint16_t) 0xFFFE) {};
 
         uint16_t af() { return (((uint16_t) _a) << 8) | ((uint16_t) _f); }

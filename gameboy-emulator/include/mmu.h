@@ -75,7 +75,7 @@ class MMU: public QObject {
         Joypad *joypad;
         Serial *serial;
         Sound *sound;
-        MBC *mbc;
+        Cartridge *cartridge;
 
     private:
 

@@ -13,7 +13,6 @@ class MMU;
 #include "include/mmu.h"
 
 
-
 #ifdef DEBUG
 class Joypad {
 #else

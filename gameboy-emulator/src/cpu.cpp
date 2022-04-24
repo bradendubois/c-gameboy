@@ -58,9 +58,11 @@ uint64_t CPU::cycle() {
     auto code = byte();
 
     // std::cout << std::dec <<  (int) cycles << " --- " << std::hex << (int) code << std::dec << std::endl;
-    auto v = opcode(code);
+    // std::cout << std::hex << (int) code << std::dec << std::endl;
     // std::cout << r.toString() << std::endl;
 
+
+    auto v = opcode(code);
     if (code == 0x40) {
         halted = true;
         // std::cout << "Halted" << std::endl;

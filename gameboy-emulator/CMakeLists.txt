@@ -43,4 +43,4 @@ set_target_properties(gameboy-emu PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
-add_compile_definitions(DEBUG)
+# add_compile_definitions(DEBUG)

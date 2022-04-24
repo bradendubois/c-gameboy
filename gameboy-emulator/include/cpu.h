@@ -78,8 +78,7 @@ class CPU: public QObject {
         uint16_t dec(uint16_t v);
         
         void hl_add(uint16_t v);
-        void  a_add(uint8_t v);
-        uint8_t  a_sub(uint8_t v);
+        uint8_t alu_sub(uint8_t v, bool carry);
 
         uint8_t rl(uint8_t v);
         uint8_t rr(uint8_t v);
@@ -99,7 +98,6 @@ class CPU: public QObject {
 
         void rst(uint8_t v);
 
-        uint16_t add_16_immediate(uint16_t a, uint8_t b);
         void set_ime();
         void unset_ime();
 
@@ -108,8 +106,10 @@ class CPU: public QObject {
         uint8_t rlc(uint8_t v);
         uint8_t rrc(uint8_t v);
 
-        uint8_t alu_add(uint8_t a, uint8_t b);
-        uint16_t alu_add(uint16_t a, uint16_t b);
+        void alu_add(uint8_t v);
+        uint16_t alu_add(uint16_t v);
+        void add_16_sp(uint8_t v);
+        void load_16_sp_hl(uint8_t v);
 
         uint8_t byte();
         uint16_t word();

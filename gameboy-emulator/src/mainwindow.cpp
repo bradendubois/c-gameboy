@@ -20,7 +20,7 @@
 #include "include/mainwindow.h"
 #include "include/gui_viewer.h"
 #ifndef DEBUG
-MainWindow::MainWindow(char *rom): widget(new QWidget), layout(new QHBoxLayout), gd(new GuiDebug), gb(new Gameboy) {
+MainWindow::MainWindow(char *rom): widget(new QWidget), layout(new QHBoxLayout), gd(new GuiDebug), gb(new Gameboy(this)) {
     
     setCentralWidget(widget);
 

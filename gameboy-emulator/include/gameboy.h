@@ -35,7 +35,7 @@ class Gameboy: public QVBoxLayout {
         Gameboy(QWidget *parent = nullptr);
         #endif
         Gameboy();
-        ~Gameboy() { delete mmu; };
+        ~Gameboy();
 
         void initialize(std::string romPath);
         std::vector<uint8_t> mooneye();

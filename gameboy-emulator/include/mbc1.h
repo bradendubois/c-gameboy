@@ -12,11 +12,7 @@ class MBC1: public MBC {
     private:
         std::vector<uint8_t> ram;
         bool ramEnable;
-        uint8_t romBankNumber;
-
-        uint8_t ramBankNumber;
-        uint8_t bankingMode;
-
+        uint8_t bank1, bank2, bankingMode;
         // get this from cartridge
         uint8_t bankMask;
 };

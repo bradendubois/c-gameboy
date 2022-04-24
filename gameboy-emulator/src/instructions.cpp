@@ -36,7 +36,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             write(word(), r._sp);
             return 20;
         case 0x09:
-            r.hl(r.bc() + r.hl());
+            alu_add(r.bc());
             return 8;
         case 0x0A:
             r._a = read(r.bc());
@@ -88,7 +88,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             jr((int8_t) byte());
             return 12;
         case 0x19:
-            hl_add(r.de());
+            alu_add(r.de());
             return 8;
         case 0x1A:
             r._a = read(r.de());
@@ -171,7 +171,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             return 8;
         }
         case 0x29:
-            hl_add(r.hl());
+            alu_add(r.hl());
             return 8;
         case 0x2A:
             r._a = read(r.hl());
@@ -237,7 +237,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             return 8;
         }
         case 0x39:
-            hl_add(r._sp);
+            alu_add(r._sp);
             return 8;
         case 0x3A:
             r._a = read(r.hl());
@@ -463,28 +463,28 @@ __uint128_t CPU::opcode(uint8_t opcode) {
         
         /// Row 0x80-0x8F
         case 0x80:
-            a_add(r._b);
+            alu_add(r._b);
             return 4;
         case 0x81:
-            a_add(r._c);
+            alu_add(r._c);
             return 4;
         case 0x82:
-            a_add(r._d);
+            alu_add(r._d);
             return 4;
         case 0x83:
-            a_add(r._e);
+            alu_add(r._e);
             return 4;
         case 0x84:
-            a_add(r._h);
+            alu_add(r._h);
             return 4;
         case 0x85:
-            a_add(r._l);
+            alu_add(r._l);
             return 4;
         case 0x86:
-            a_add(read(r.hl()));
+            alu_add(read(r.hl()));
             return 8;
         case 0x87:
-            a_add(r._a);
+            alu_add(r._a);
             return 4;
         case 0x88:
             adc(r._b);
@@ -513,28 +513,28 @@ __uint128_t CPU::opcode(uint8_t opcode) {
 
         /// Row 0x90-0x9F
         case 0x90:
-            a_sub(r._b);
+            r._a = alu_sub(r._b, false);
             return 4;
         case 0x91:
-            a_sub(r._c);
+            r._a = alu_sub(r._c, false);
             return 4;
         case 0x92:
-            a_sub(r._d);
+            r._a = alu_sub(r._d, false);
             return 4;
         case 0x93:
-            a_sub(r._e);
+            r._a = alu_sub(r._e, false);
             return 4;
         case 0x94:
-            a_sub(r._h);
+            r._a = alu_sub(r._h, false);
             return 4;
         case 0x95:
-            a_sub(r._l);
+            r._a = alu_sub(r._l, false);
             return 4;
         case 0x96:
-            a_sub(read(r.hl()));
+            r._a = alu_sub(read(r.hl()), false);
             return 8;
         case 0x97:
-            a_sub(r._a);
+            r._a = alu_sub(r._a, false);
             return 4;
         case 0x98:
             sbc(r._b);
@@ -694,7 +694,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             push(r.bc());
             return 16;
         case 0xC6:
-            a_add(byte());
+            alu_add(byte());
             return 8;
         case 0xC7:
             rst(0x00);
@@ -768,7 +768,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             push(r.de());
             return 16;
         case 0xD6:
-            a_sub(byte());
+            r._a = alu_sub(byte(), false);
             return 8;
         case 0xD7:
             rst(0x10);
@@ -826,7 +826,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             rst(0x20);
             return 16;
         case 0xE8:
-            r._sp = add_16_immediate(r._sp, byte());
+            add_16_sp(byte());
             return 16;
         case 0xE9:
             jp(r.hl());
@@ -868,7 +868,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             rst(0x30);
             return 16;
         case 0xF8:
-            r.hl(add_16_immediate(r._sp, byte()));
+            load_16_sp_hl(byte());
             return 12;
         case 0xF9:
             r._sp = r.hl();

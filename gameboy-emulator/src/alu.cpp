@@ -126,25 +126,22 @@ uint8_t CPU::rrc(uint8_t v) {
 
 //
 
-uint8_t CPU::alu_add(uint8_t a, uint8_t b) {
-    r.flag_z(a + b == 0);
+void CPU::alu_add(uint8_t v) {
+    uint8_t result = r._a + v;
+    r.flag_z(result == 0);
     r.flag_n(false);
-    r.flag_h(((a & 0x0F) + (b & 0x0F)) > 0x0F);
-    r.flag_c(a < b);
-    return a + b;
+    r.flag_h(((r._a & 0x0F) + (v & 0x0F)) > 0x0F);
+    r.flag_c(result < r._a);
+    r._a = result;
 }
 
-void CPU::a_add(uint8_t v) {
-    r._a = alu_add(r._a, v);
-}
-
-uint8_t CPU::a_sub(uint8_t v) {
+uint8_t CPU::alu_sub(uint8_t v, bool carry) {
+    uint8_t c = (carry && r.flag_c()) ? 0x01 : 0x00;
     uint8_t s = r._a - v;
     r.flag_z(s == 0);
     r.flag_n(true);
-    r.flag_h((r._a & 0x0F) < (v & 0x0F));
-    r.flag_c(((uint16_t) r._a) < ((uint16_t) v));
-    r._a = s;
+    r.flag_h((((r._a & 0x0F) - (v & 0x0F) - c) & (0x0F + 1)) != 0);
+    r.flag_c(((uint16_t) r._a) < ((uint16_t) v + (uint16_t) c));
     return s;
 }
 
@@ -157,13 +154,17 @@ void CPU::a_and(uint8_t v) {
 }
 
 void CPU::a_cp(uint8_t v) {
-    uint8_t restore = r._a;
-    a_sub(v);
-    r._a = restore;
+    alu_sub(v, false);
 }
 
 void CPU::adc(uint8_t v) {
-    a_add(v + (r.flag_c() ? 0x01 : 0x00));
+    uint8_t carry = r.flag_c() ? 0x01 : 0x00;
+    uint8_t result = r._a + v + carry;
+    r.flag_z(result == 0);
+    r.flag_n(false);
+    r.flag_h((r._a & 0x0F) + (v & 0x0F) + carry > 0x0F);
+    r.flag_c(((uint16_t) r._a + (uint16_t) v + (uint16_t) carry) > 0x00FF);
+    r._a = result;
 }
 
 void CPU::a_or(uint8_t v) {
@@ -175,7 +176,7 @@ void CPU::a_or(uint8_t v) {
 }
 
 void CPU::sbc(uint8_t v) {
-    a_sub(v + (r.flag_c() ? 0x01 : 0x00));
+    r._a = alu_sub(v, true);
 }
 
 void CPU::a_xor(uint8_t v) {
@@ -186,25 +187,34 @@ void CPU::a_xor(uint8_t v) {
     r.flag_c(false);
 }
 
-uint16_t CPU::alu_add(uint16_t a, uint16_t b) {
-    uint16_t s = a + b;
-    r.flag_h(((a & 0x07FF) + (b & 0x07FF)) > 0x07FF);
+uint16_t CPU::alu_add(uint16_t v) {
+    uint16_t hl = r.hl();
+    uint16_t result = hl + v;
+    r.flag_h(((hl & 0x07FF) + (v & 0x07FF)) > 0x07FF);
     r.flag_n(false);
-    r.flag_c(s < a);
-    return s;
+    r.flag_c(hl > (0xFFFF - v));
+    r.hl(result);
 }
 
-void CPU::hl_add(uint16_t v) {
-    r.hl(alu_add(r.hl(), v));
-}
-
-uint16_t CPU::add_16_immediate(uint16_t a, uint8_t b) {
-    uint16_t x = (uint16_t) (int16_t) (int8_t) b;
+void CPU::add_16_sp(uint8_t v) {
+    uint16_t x = (uint16_t) (int16_t) (int8_t) v;
+    uint16_t sp = r._sp;
+    r._sp += x;
     r.flag_n(false);
     r.flag_z(false);
-    r.flag_h(((a & 0x000F) + (x & 0x000F)) > 0x000F);
-    r.flag_c(((a & 0x00FF) + (x & 0x00FF)) > 0x000F);
-    return a + x;
+    r.flag_h(((sp & 0x000F) + (x & 0x000F)) > 0x000F);
+    r.flag_c(((sp & 0x00FF) + (x & 0x00FF)) > 0x00FF);
+}
+
+void CPU::load_16_sp_hl(uint8_t v) {
+    uint16_t x = (uint16_t) (int16_t) (int8_t) v;
+    uint16_t sp = r._sp;
+    uint16_t result = sp + x;
+    r.hl(result);
+    r.flag_n(false);
+    r.flag_z(false);
+    r.flag_h(((sp & 0x000F) + (x & 0x000F)) > 0x000F);
+    r.flag_c(((sp & 0x00FF) + (x & 0x00FF)) > 0x00FF);
 }
 
 //

@@ -30,7 +30,10 @@ Gameboy::Gameboy(QWidget *parent): QVBoxLayout(parent), displayLabel(new QLabel)
 }
 #endif
 
+
 Gameboy::Gameboy() { }
+
+Gameboy::~Gameboy() { delete mmu; };
 
 void Gameboy::initialize(std::string romPath) {
 
@@ -45,10 +48,7 @@ void Gameboy::initialize(std::string romPath) {
     #ifdef DEBUG
     mmu = new MMU(data);
     #else
-    mmu = new MMU(this, cartridge);
-    cpu = new CPU(mmu);
-    ppu = new PPU(mmu, displayLabel, windowLabel, backgroundLabel);
-    timer = new Timer(mmu);
+    mmu = new MMU(this, data);
     #endif
 
 
@@ -181,6 +181,7 @@ void Gameboy::advanceCycles(uint64_t cycles) {
 }
 
 void Gameboy::setBreakpointOn(ADDRESS_ACCESS accessType, uint16_t address) {
+#ifdef FALSE_
     switch (accessType) {
         case ADDRESS_ACCESS::READ:
             cpu->mmu->watchAddress(accessType, address);
@@ -194,6 +195,7 @@ void Gameboy::setBreakpointOn(ADDRESS_ACCESS accessType, uint16_t address) {
         default:
             break;
     }
+#endif
 }
 
 void Gameboy::removeBreakpointOn(ADDRESS_ACCESS accessType, uint16_t address) {
@@ -202,7 +204,7 @@ void Gameboy::removeBreakpointOn(ADDRESS_ACCESS accessType, uint16_t address) {
 
 
 void Gameboy::updateLocalGUI() {
-    connect(cpu, &CPU::accessHaltSignal, this, &Gameboy::accessHalt);
+    // connect(cpu, &CPU::accessHaltSignal, this, &Gameboy::accessHalt);
 }
 
 void Gameboy::accessHalt(ADDRESS_ACCESS r, uint16_t address) {

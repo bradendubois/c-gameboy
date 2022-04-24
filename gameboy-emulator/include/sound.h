@@ -2,6 +2,7 @@
 #define SOUND_H
 
 #include <stdint.h>
+
 #include "include/mmu.h"
 class Sound {
 

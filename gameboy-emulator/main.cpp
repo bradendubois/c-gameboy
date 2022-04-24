@@ -26,15 +26,49 @@ const std::vector<std::string> roms{
     "./roms/mooneye/emulator-only/mbc1/rom_2Mb.gb",
     "./roms/mooneye/emulator-only/mbc1/rom_4Mb.gb",
     "./roms/mooneye/emulator-only/mbc1/rom_8Mb.gb",
-    "./roms/mooneye/emulator-only/mbc1/rom_16Mb.gb"
+    "./roms/mooneye/emulator-only/mbc1/rom_16Mb.gb",
+    "./roms/mooneye/acceptance/bits/mem_oam.gb",
+    "./roms/mooneye/acceptance/bits/reg_f.gb",
+    "./roms/mooneye/acceptance/instr/daa.gb",
+    "./roms/mooneye/acceptance/interrupts/ie_push.gb",
+    "./roms/mooneye/acceptance/add_sp_e_timing.gb",
+    "./roms/mooneye/acceptance/boot_div-dmg0.gb",
+    "./roms/mooneye/acceptance/boot_hwio-dmg0.gb",
+    "./roms/mooneye/acceptance/boot_regs-dmg0.gb",
+    "./roms/mooneye/acceptance/call_cc_timing.gb",
+    "./roms/mooneye/acceptance/call_cc_timing2.gb",
+    "./roms/mooneye/acceptance/call_timing.gb",
+    "./roms/mooneye/acceptance/call_timing2.gb",
+    "./roms/mooneye/acceptance/div_timing.gb",
+    "./roms/mooneye/acceptance/ei_sequence.gb",
+    "./roms/mooneye/acceptance/ei_timing.gb",
+    "./roms/mooneye/acceptance/if_ie_registers.gb",
+
+    
 };
+
+
+    
+    
+// "./roms/mooneye/acceptance/intr_timing.gb",
+//     "./roms/mooneye/acceptance/jp_cc_timing.gb",
+//     "./roms/mooneye/acceptance/jp_timing.gb",
+//     "./roms/mooneye/acceptance/ld_hl_sp_e_timing.gb",
+//     "./roms/mooneye/acceptance/pop_timing.gb",
+//     "./roms/mooneye/acceptance/push_timing.gb",
+//     "./roms/mooneye/acceptance/rapid_di_ei.gb",
+//     "./roms/mooneye/acceptance/ret_cc_timing.gb",
+//     "./roms/mooneye/acceptance/reti_timing.gb",
+//     "./roms/mooneye/acceptance/rst_timing.gb"
+    // "./roms/mooneye/acceptance/ret_timing.gb",
+    // "./roms/mooneye/acceptance/reti_intr_timing.gb",
 
 int main(int argc, char *argv[])
 {
     #ifdef DEBUG
-        Gameboy gb;
         for (auto rom: roms) {
             std::cout << rom.substr(rom.rfind("/")) << " - ";
+            Gameboy gb;
             gb.initialize(rom);
             auto r = gb.mooneye();
             if (r[0] == 3 && r[1] == 5 && r[2] == 8 && r[3] == 13 && r[4] == 21 && r[5] == 34) {
