@@ -7,10 +7,18 @@
 #include <math.h>
 #include <time.h>
 
-#ifndef DEBUG
-PPU::PPU(MMU *mmu, QLabel *displayLabel, QLabel *windowLabel, QLabel *backgroundLabel): mmu(mmu), displayLabel(displayLabel), windowLabel(windowLabel), backgroundLabel(backgroundLabel) {
-
-    mmu->ppu = this;
+#ifdef DEBUG
+PPU::PPU(MMU *mmu): mmu(mmu)
+#else
+PPU::PPU(MMU *mmu): QObject(mmu), mmu(mmu)
+#endif
+{
+    #ifndef DEBUG
+    Gameboy *gb = static_cast<Gameboy*>(parent()->parent());
+    gb->addWidget((displayLabel = new QLabel));
+    gb->addWidget((backgroundLabel = new QLabel));
+    gb->addWidget((windowLabel = new QLabel));
+    #endif
 
     v_ram = std::vector<uint8_t>(0x2000, 0);
     dots = 0;
@@ -25,6 +33,9 @@ PPU::PPU(MMU *mmu, QLabel *displayLabel, QLabel *windowLabel, QLabel *background
     // BACKGROUND_TMA = _9800_9BFF;
     // PPU_ENABLED = true;
     // OBJ_ENABLED = true;
+    
+    
+    #ifndef DEBUG
     composite = new QImage(160, 144, QImage::Format::Format_ARGB32);
     backgroundImage = new QImage(256, 256, QImage::Format::Format_ARGB32);
     windowImage = new QImage(256, 256, QImage::Format::Format_ARGB32);
@@ -46,32 +57,7 @@ PPU::PPU(MMU *mmu, QLabel *displayLabel, QLabel *windowLabel, QLabel *background
     // displayLabel->setPixmap(QPixmap::fromImage(*composite).scaled(displayLabel->size(), Qt::KeepAspectRatio));
     // backgroundLabel->setPixmap(QPixmap::fromImage(*backgroundImage).scaled(backgroundLabel->size(), Qt::KeepAspectRatio));
 
-    const std::vector<uint8_t> t{0xFF, 0x00, 0x7E, 0xFF, 0x85, 0x81, 0x89, 0x83, 0x93, 0x85, 0xA5, 0x8B, 0xC9, 0x97, 0x7E, 0xFF};
-
-    for (unsigned char i = 0; i < t.size(); i += 2) {
-        uint8_t low = t[i];
-        uint8_t high = t[i+1];
-        for (int j = 7; j >= 0; j--) {
-            std::cout << (int) ((((high >> j) << 1) & 0x02) | ((low >> j) & 0x01));
-        } std::cout << std::endl;
-    }
-}
-#else
-PPU::PPU(MMU *mmu): mmu(mmu) {
-
-    mmu->ppu = this;
-
-    v_ram = std::vector<uint8_t>(0x2000, 0);
-    dots = 0;
-
-    needOAMRevalidation = true;
-    needBackgroundRevalidation = true;
-    needWindowRevalidation = true;
-
-    // displayLabel->setPixmap(QPixmap::fromImage(*composite).scaled(displayLabel->size(), Qt::KeepAspectRatio));
-    // backgroundLabel->setPixmap(QPixmap::fromImage(*backgroundImage).scaled(backgroundLabel->size(), Qt::KeepAspectRatio));
-
-    const std::vector<uint8_t> t{0xFF, 0x00, 0x7E, 0xFF, 0x85, 0x81, 0x89, 0x83, 0x93, 0x85, 0xA5, 0x8B, 0xC9, 0x97, 0x7E, 0xFF};
+    // const std::vector<uint8_t> t{0xFF, 0x00, 0x7E, 0xFF, 0x85, 0x81, 0x89, 0x83, 0x93, 0x85, 0xA5, 0x8B, 0xC9, 0x97, 0x7E, 0xFF};
 
     // for (unsigned char i = 0; i < t.size(); i += 2) {
     //     uint8_t low = t[i];
@@ -80,8 +66,9 @@ PPU::PPU(MMU *mmu): mmu(mmu) {
     //         std::cout << (int) ((((high >> j) << 1) & 0x02) | ((low >> j) & 0x01));
     //     } std::cout << std::endl;
     // }
+    #endif
 }
-#endif
+
 
 uint8_t PPU::read(uint16_t address) {
     switch (address) {

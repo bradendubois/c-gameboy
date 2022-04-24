@@ -46,22 +46,25 @@ class Gameboy: public QVBoxLayout {
     signals:
         void ready();
 
+        void signal_updateRegister(REGISTER_POSITION r, uint16_t value);
+        void signal_updateTile(QImage *img, uint8_t n, PPU_LAYER layer);
+
     public slots:
         void advanceCycles(uint64_t cycles);
         void setBreakpointOn(ADDRESS_ACCESS accessType, uint16_t address);
         void removeBreakpointOn(ADDRESS_ACCESS accessType, uint16_t address);
         void accessHalt(ADDRESS_ACCESS r, uint16_t address);
+
+        void slot_updateRegister(REGISTER_POSITION r, uint16_t value);
+        void slot_updateTile(QImage *img, uint8_t n, PPU_LAYER layer);
     #endif
 
     protected:
         void run();
 
     private:
-        #ifndef DEBUG
-        QLabel *displayLabel;
-        QLabel *backgroundLabel;
-        QLabel *windowLabel;
-        #endif
+        friend class MMU;
+        friend class PPU;
 
         bool checkCycleCount;
         int cycleCount;

@@ -49,11 +49,7 @@ class PPU: public QObject {
 #endif
 
     public:
-        #ifdef DEBUG
         PPU(MMU *mmu);
-        #else
-        PPU(MMU *mmu, QLabel *displayLabel, QLabel *windowLabel, QLabel *backgroundLabel);
-        #endif
         ~PPU() = default;
 
         uint8_t read(uint16_t address);
@@ -103,7 +99,6 @@ class PPU: public QObject {
 
         // make each window operate separately here
 
-        #ifndef DEBUG
         QImage *composite;
         QImage *backgroundImage;
         QImage *windowImage;
@@ -113,7 +108,6 @@ class PPU: public QObject {
         QLabel *displayLabel;
         QLabel *backgroundLabel;
         QLabel *windowLabel;
-        #endif
 
         uint64_t dots;
 
@@ -125,10 +119,11 @@ class PPU: public QObject {
 
         #ifndef DEBUG
         QImage* generate8(uint16_t address, uint8_t palette, bool useTransparency = false);
-        std::vector<QImage*> oam_cache;
         #endif
         // std::vector<QImage*> bg_cache;
-        
+
+        std::vector<QImage*> oam_cache;
+
         bool needOAMRevalidation; 
         bool needBackgroundRevalidation;
         bool needWindowRevalidation;

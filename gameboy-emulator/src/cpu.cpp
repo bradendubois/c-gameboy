@@ -3,7 +3,6 @@
 
 
 CPU::CPU(MMU *mmu): r(Registers()), mmu(mmu), t(0), ime(IME::Disabled), hit(NOT_TRIGGERED) {
-    mmu->cpu = this;
     isr = ISR::INACTIVE;
     update();
     cycles = 0;

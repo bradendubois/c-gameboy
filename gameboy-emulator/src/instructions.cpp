@@ -140,26 +140,25 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             return 8;
         case 0x27: {
             uint8_t adj = 0;
-            
-            if (r.flag_c()) {
-                adj |= 0x60;
-            }
-
-            if (r.flag_h()) {
-                adj |= 0x06;
-            }
-
+            bool carry = false;
             if (!r.flag_n()) {
-                if ((r._a & 0x0F) > 0x09) adj |= 0x06;
-                if (r._a > 0x99) adj |= 0x60;
+                if (r.flag_c() || (r._a > 0x99)) {
+                    r._a += 0x60;
+                    carry = true;
+                }
+                if (r.flag_h() || ((r._a & 0x0F) > 0x09)) {
+                    r._a += 0x06;
+                }
+            } else if (r.flag_c()) {
+                carry = true;
+                r._a += r.flag_h() ? 0x9A : 0xA0;
+            
+            } else if (r.flag_h()) {
+                r._a += 0xFA;
             }
-
-            r._a += adj;
-
-            r.flag_c(adj >= 0x80);
-            r.flag_h(false);
             r.flag_z(r._a == 0);
-
+            r.flag_h(false);
+            r.flag_c(carry);
             return 4;
         }
         case 0x28: {

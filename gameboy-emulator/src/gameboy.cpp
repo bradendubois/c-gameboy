@@ -22,10 +22,7 @@ class MMU;
 #include <QPixmap>
 
 #ifndef DEBUG
-Gameboy::Gameboy(QWidget *parent): QVBoxLayout(parent), displayLabel(new QLabel), windowLabel(new QLabel), backgroundLabel(new QLabel), checkCycleCount(false), cycleCount(0) {
-    addWidget(displayLabel);
-    addWidget(backgroundLabel);
-    addWidget(windowLabel);
+Gameboy::Gameboy(QWidget *parent): QVBoxLayout(parent), checkCycleCount(false), cycleCount(0) {
     connect(this, &Gameboy::ready, this, &Gameboy::updateLocalGUI);
 }
 #endif
@@ -49,8 +46,10 @@ void Gameboy::initialize(std::string romPath) {
     mmu = new MMU(data);
     #else
     mmu = new MMU(this, data);
-    #endif
+    connect(mmu->cpu, &CPU::updateRegister, this, &Gameboy::slot_updateRegister);
+    connect(mmu->ppu, &PPU::updateTile, this, &Gameboy::slot_updateTile);
 
+    #endif
 
     // Joypad
     mmu->write(0xFF00, (uint8_t) 0xCF);
@@ -150,17 +149,17 @@ void Gameboy::run() {
     // while (!cpu->halted && (!checkCycleCount || cycleCount > 0)) {
     while (!mmu->cpu->halted) {
         auto v = mmu->cpu->cycle();
-        
+
         mmu->ppu->cycle(v);
         if (checkCycleCount && (cycleCount > 0)) {
             --cycleCount;
         }
 
-        // if (cpu->cycles % 10000 == 0) {
-        //     QTime dieTime= QTime::currentTime().addMSecs(10);
-        //     while (QTime::currentTime() < dieTime)
-        //     QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-        // }
+        if (mmu->cpu->cycles % 10000 == 0) {
+            QTime dieTime= QTime::currentTime().addMSecs(10);
+            while (QTime::currentTime() < dieTime)
+            QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+        }
     }
 }
 
@@ -210,5 +209,14 @@ void Gameboy::updateLocalGUI() {
 void Gameboy::accessHalt(ADDRESS_ACCESS r, uint16_t address) {
     cycleCount = 0;
     std::cout << "Gameboy halted with " << r << " on address " << (int) address << std::endl;
+}
+
+
+void Gameboy::slot_updateRegister(REGISTER_POSITION r, uint16_t value) {
+    emit signal_updateRegister(r, value);
+}
+
+void Gameboy::slot_updateTile(QImage *img, uint8_t n, PPU_LAYER layer) {
+    emit signal_updateTile(img, n, layer);
 }
 #endif

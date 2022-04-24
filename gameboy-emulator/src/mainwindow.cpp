@@ -20,9 +20,12 @@
 #include "include/mainwindow.h"
 #include "include/gui_viewer.h"
 #ifndef DEBUG
-MainWindow::MainWindow(char *rom): widget(new QWidget), layout(new QHBoxLayout), gd(new GuiDebug), gb(new Gameboy(this)) {
+MainWindow::MainWindow(char *rom): widget(new QWidget), layout(new QHBoxLayout) {
     
     setCentralWidget(widget);
+
+    gd = new GuiDebug(this);
+    gb = new Gameboy(this);
 
     setWindowTitle(tr("Gameboy Emulator"));
     setMinimumSize(600, 400);
@@ -89,10 +92,8 @@ void MainWindow::createMenuBar() {
 
 
 void MainWindow::gameboyReady() {
-    connect(gb->cpu, &CPU::updateRegister, gd, &GuiDebug::updateRegisters);
-    gb->cpu->update();
-    connect(gb->ppu, &PPU::updateTile, gd->gv, &GuiViewer::receiveImage);
-
+    connect(gb, &Gameboy::signal_updateRegister, gd, &GuiDebug::updateRegisters);
+    connect(gb, &Gameboy::signal_updateTile, gd->gv, &GuiViewer::receiveImage);
 }
 
 #endif

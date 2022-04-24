@@ -142,7 +142,9 @@ void GuiDebug::updateRegisters(REGISTER_POSITION r, uint16_t value) {
     }
 }
 
-GuiDebug::GuiDebug(QWidget *parent): QVBoxLayout(parent), mr(new GuiRegisters), gc(new GuiControls), tabs(new QTabWidget), gh(new GuiHistory), bp(new GuiBreakpoints) {
+GuiDebug::GuiDebug(QWidget *parent): mr(new GuiRegisters), gc(new GuiControls), tabs(new QTabWidget), gh(new GuiHistory), bp(new GuiBreakpoints) {
+
+    (void) parent;
 
     addWidget(mr);
     addLayout(gc);

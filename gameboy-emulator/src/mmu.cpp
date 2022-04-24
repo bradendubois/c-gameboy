@@ -25,21 +25,16 @@ MMU::~MMU() {
     // std::cout << "Done MMU Delete" << std::endl;
 };
 
-#ifndef DEBUG
-MMU::MMU(QObject *parent, std::vector<uint8_t> *data): QObject(parent), w_ram(std::vector<uint8_t>(W_RAM_SIZE, 0)), h_ram(std::vector<uint8_t>(H_RAM_SIZE, 0)), oam(std::vector<uint8_t>(OAM_SIZE, 0)), joypad(Joypad()), serial(Serial()), sound(Sound())
+#ifdef DEBUG
+MMU::MMU(std::vector<uint8_t> *data)
+#else
+MMU::MMU(QObject *parent, std::vector<uint8_t> *data): QObject(parent)
+#endif
 {
-    mbc = mbcFactory(data);
 
     ff0f = 0xE1;
     ffff = 0;
 
-    // Joypad j = Joypad();
-
-    // QObject::connect(&w, &MainWindow::pressed, &j, &Joypad::receivePress);
-}
-#else
-MMU::MMU(std::vector<uint8_t> *data): w_ram(std::vector<uint8_t>(W_RAM_SIZE, 0)), h_ram(std::vector<uint8_t>(H_RAM_SIZE, 0)), oam(std::vector<uint8_t>(OAM_SIZE, 0))
-{
     cartridge = new Cartridge(data);
     cpu = new CPU(this);
     ppu = new PPU(this);
@@ -51,12 +46,12 @@ MMU::MMU(std::vector<uint8_t> *data): w_ram(std::vector<uint8_t>(W_RAM_SIZE, 0))
     ff0f = 0xE1;
     ffff = 0;
 
-    // Joypad j = Joypad();
+    w_ram = std::vector<uint8_t>(W_RAM_SIZE, 0);
+    h_ram = std::vector<uint8_t>(H_RAM_SIZE, 0);
+    oam = std::vector<uint8_t>(OAM_SIZE, 0);
 
     // QObject::connect(&w, &MainWindow::pressed, &j, &Joypad::receivePress);
-
 }
-#endif
 
 uint8_t MMU::read(uint16_t address) {
     if (watchReads.contains(address)) {
