@@ -4,8 +4,10 @@
 #include "include/gui_breakpoints.h"
 #include "include/mmu.h"
 
-#include "include/mbc0.h"
-#include "include/mbc1.h"
+#include "include/mbcs/mbc.h"
+#include "include/mbcs/mbc0.h"
+#include "include/mbcs/mbc1.h"
+
 #include "include/ppu.h"
 
 

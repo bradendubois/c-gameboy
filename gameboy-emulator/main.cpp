@@ -27,6 +27,21 @@ const std::vector<std::string> roms{
     "./roms/mooneye/emulator-only/mbc1/rom_4Mb.gb",
     "./roms/mooneye/emulator-only/mbc1/rom_8Mb.gb",
     "./roms/mooneye/emulator-only/mbc1/rom_16Mb.gb",
+    "./roms/mooneye/emulator-only/mbc2/bits_ramg.gb",
+    "./roms/mooneye/emulator-only/mbc2/bits_romb.gb",
+    "./roms/mooneye/emulator-only/mbc2/bits_unused.gb",
+    "./roms/mooneye/emulator-only/mbc2/ram.gb",
+    "./roms/mooneye/emulator-only/mbc2/rom_1Mb.gb",
+    "./roms/mooneye/emulator-only/mbc2/rom_2Mb.gb",
+    "./roms/mooneye/emulator-only/mbc2/rom_512kb.gb",
+    // "./roms/mooneye/emulator-only/mbc5/rom_1Mb.gb",
+    // "./roms/mooneye/emulator-only/mbc5/rom_2Mb.gb",
+    // "./roms/mooneye/emulator-only/mbc5/rom_4Mb.gb",
+    // "./roms/mooneye/emulator-only/mbc5/rom_8Mb.gb",
+    // "./roms/mooneye/emulator-only/mbc5/rom_16Mb.gb",
+    // "./roms/mooneye/emulator-only/mbc5/rom_32Mb.gb",
+    // "./roms/mooneye/emulator-only/mbc5/rom_64Mb.gb",
+    // "./roms/mooneye/emulator-only/mbc5/rom_512kb.gb",
     "./roms/mooneye/acceptance/bits/mem_oam.gb",
     "./roms/mooneye/acceptance/bits/reg_f.gb",
     "./roms/mooneye/acceptance/instr/daa.gb",
@@ -43,8 +58,6 @@ const std::vector<std::string> roms{
     "./roms/mooneye/acceptance/ei_sequence.gb",
     "./roms/mooneye/acceptance/ei_timing.gb",
     "./roms/mooneye/acceptance/if_ie_registers.gb",
-
-    
 };
 
 
@@ -67,7 +80,7 @@ int main(int argc, char *argv[])
 {
     #ifdef DEBUG
         for (auto rom: roms) {
-            std::cout << rom.substr(rom.rfind("/")) << " - ";
+            std::cout << rom.substr(rom.rfind("/", rom.rfind("/") - 1)) << " - ";
             Gameboy gb;
             gb.initialize(rom);
             auto r = gb.mooneye();

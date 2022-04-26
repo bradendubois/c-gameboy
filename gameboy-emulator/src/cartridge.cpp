@@ -1,9 +1,12 @@
-#include "include/cartridge.h"
-#include "include/mbc.h"
-#include "include/mbc0.h"
-#include "include/mbc1.h"
-
 #include <iostream>
+
+#include "include/cartridge.h"
+
+#include "include/mbcs/mbc.h"
+#include "include/mbcs/mbc0.h"
+#include "include/mbcs/mbc1.h"
+#include "include/mbcs/mbc2.h"
+
 
 static std::string stringSlice(std::vector<uint8_t> *buffer, int start, int end) {
     std::string r = "";
@@ -16,11 +19,11 @@ static std::string stringSlice(std::vector<uint8_t> *buffer, int start, int end)
 MBC* createMBC(std::vector<uint8_t> *data) {
     switch (data->at(0x147)) {
         case 0x00:
-            // std::cout << "MBC0" << std::endl;
             return new MBC0(data);
         case 0x01 ... 0x03:
-            // std::cout << "MBC1" << std::endl;
             return new MBC1(data);
+        case 0x05 ... 0x06:
+            return new MBC2(data);
         default:
             std::cerr << "Unknown MBC type " << (int) data->at(0x147) << std::endl;
             exit(1);

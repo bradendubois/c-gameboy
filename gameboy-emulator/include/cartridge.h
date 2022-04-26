@@ -5,7 +5,7 @@
 #include <string>
 #include <stdint.h>
 
-#include "include/mbc.h"
+#include "include/mbcs/mbc.h"
 
 class Cartridge {
 
