@@ -16,7 +16,7 @@
 
 #include "include/cpu.h"
 #include "include/gameboy.h"
-#include "include/gui_debug.h"
+#include "include/gui/gui_debug.h"
 
 
 class Gameboy;
@@ -43,7 +43,7 @@ class MainWindow : public QMainWindow
         void setFile();
 
     signals:
-        void selectedRom(std::string romName);
+        void selectedRom(GAMEBOY_MODEL MODEL, std::string romName);
         void pressed(QKeyEvent *e);
 
     protected:

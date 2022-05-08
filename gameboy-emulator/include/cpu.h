@@ -9,12 +9,14 @@
 
 class MMU;
 
-#include "include/mmu.h"
-#include "include/gui_debug.h"
-#include "include/registers.h"
-
+#ifndef DEBUG
+#include "include/gui/gui_debug.h"
+#include "include/gui/gui_breakpoints.h"
 #include "include/mainwindow.h"
-#include "include/gui_breakpoints.h"
+#endif
+
+#include "include/mmu.h"
+#include "include/registers.h"
 
 
 enum IME { Enabled, Disabled, OneCycleDelay };
@@ -39,11 +41,14 @@ class CPU: public QObject {
 #endif
 
     public:
-        CPU(MMU *mmu);
+        CPU();
         ~CPU() = default;
         uint64_t cycle();
         void update();
         uint64_t cycles;
+
+        void initialize(GAMEBOY_MODEL model, uint16_t checksum);
+        void debug(Breakpoint b);
 
     #ifndef DEBUG
     signals:
@@ -107,7 +112,7 @@ class CPU: public QObject {
         uint8_t rrc(uint8_t v);
 
         void alu_add(uint8_t v);
-        uint16_t alu_add(uint16_t v);
+        void alu_add(uint16_t v);
         void add_16_sp(uint8_t v);
         void load_16_sp_hl(uint8_t v);
 
@@ -133,6 +138,8 @@ class CPU: public QObject {
 
         ISR isr;
         uint8_t handler;
+
+        std::set<uint8_t> opcodeWatch;
 };
 
 #endif

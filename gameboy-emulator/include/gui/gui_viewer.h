@@ -23,11 +23,7 @@
 #include <QTableWidgetItem>
 #include <QVBoxLayout>
 
-enum PPU_LAYER {
-    L_SPRITE,
-    L_WINDOW,
-    L_BACKGROUND
-};
+#include "include/ppu.h"
 
 class PPUViewer: public QTableWidget {
 

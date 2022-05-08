@@ -12,7 +12,7 @@
 #include <QPushButton>
 #include <QWidget>
 
-#include "include/gui_breakpoints.h"
+#include "include/gui/gui_breakpoints.h"
 
 GuiBreakpoints::GuiBreakpoints(QWidget *parent): QWidget(parent), layout(new QVBoxLayout), l(new QLabel), table(new QTableWidget(0, 3, this)), le(new QLineEdit), readButton(new QPushButton(tr("on Read"))), writeButton(new QPushButton(tr("on Write"))), pcButton(new QPushButton(tr("on PC at"))) {
 

@@ -2,8 +2,12 @@
 #include <QGraphicsView>
 #include <QImage>
 
-#include "include/gui_viewer.h"
+#ifndef DEBUG
+#include "include/gui/gui_viewer.h"
+#endif
+
 #include "include/ppu.h"
+
 #include <math.h>
 #include <time.h>
 
@@ -14,10 +18,14 @@ PPU::PPU(MMU *mmu): QObject(mmu), mmu(mmu)
 #endif
 {
     #ifndef DEBUG
+    displayLabel = new QLabel;
+    backgroundLabel = new QLabel;
+    windowLabel = new QLabel;
+
     Gameboy *gb = static_cast<Gameboy*>(parent()->parent());
-    gb->addWidget((displayLabel = new QLabel));
-    gb->addWidget((backgroundLabel = new QLabel));
-    gb->addWidget((windowLabel = new QLabel));
+    gb->addWidget(displayLabel);
+    gb->addWidget(backgroundLabel);
+    gb->addWidget(windowLabel);
     #endif
 
     v_ram = std::vector<uint8_t>(0x2000, 0);
@@ -33,7 +41,6 @@ PPU::PPU(MMU *mmu): QObject(mmu), mmu(mmu)
     // BACKGROUND_TMA = _9800_9BFF;
     // PPU_ENABLED = true;
     // OBJ_ENABLED = true;
-    
     
     #ifndef DEBUG
     composite = new QImage(160, 144, QImage::Format::Format_ARGB32);
@@ -53,6 +60,7 @@ PPU::PPU(MMU *mmu): QObject(mmu), mmu(mmu)
     composite->setPixel(10, 11, qRgb(255, 128, 255));
     composite->setPixel(10, 12, qRgb(255, 255, 128));
     composite->setPixel(10, 13, qRgb(180, 60, 120));
+    #endif
 
     // displayLabel->setPixmap(QPixmap::fromImage(*composite).scaled(displayLabel->size(), Qt::KeepAspectRatio));
     // backgroundLabel->setPixmap(QPixmap::fromImage(*backgroundImage).scaled(backgroundLabel->size(), Qt::KeepAspectRatio));
@@ -66,7 +74,6 @@ PPU::PPU(MMU *mmu): QObject(mmu), mmu(mmu)
     //         std::cout << (int) ((((high >> j) << 1) & 0x02) | ((low >> j) & 0x01));
     //     } std::cout << std::endl;
     // }
-    #endif
 }
 
 
@@ -210,7 +217,7 @@ void PPU::cycle(uint64_t cycles) {
             }
             
             if (LYC_LY_INTERRUPT && (ff44 == ff45)) {
-                mmu->ffff |= 0x02;
+                mmu->ff0f |= 0x02;
             }
 
             if (ff44 >= 144 && MODE != PPU_MODE::_1_VBLANK) {
@@ -227,10 +234,10 @@ void PPU::cycle(uint64_t cycles) {
                     #endif
                 }
                 MODE = PPU_MODE::_1_VBLANK;
-                mmu->ffff |= 0x01;
+                mmu->ff0f |= 0x01;
             }
             if (MODE_1_VBLANK_INTERRUPT) {
-                mmu->ffff |= 0x02;       
+                mmu->ff0f |= 0x02;       
             }
         }
 
@@ -238,12 +245,14 @@ void PPU::cycle(uint64_t cycles) {
             switch (dots) {
                 case 0 ... 80: {
                     if (MODE != PPU_MODE::_2_OAM_SEARCH) {
+                        #ifndef DEBUG
                         if (needOAMRevalidation) { computeOAM(); }
+                        #endif
                         MODE = PPU_MODE::_2_OAM_SEARCH;
 
                     }
                     if (MODE_2_OAM_STAT_INTERRUPT) {
-                        mmu->ffff |= 0x02;
+                        mmu->ff0f |= 0x02;
                     }
                     break;
                 }
@@ -263,7 +272,7 @@ void PPU::cycle(uint64_t cycles) {
                         MODE = PPU_MODE::_0_HBLANK;
                     }
                     if (MODE_0_HBLANK_INTERRUPT) {
-                       mmu->ffff |= 0x02;       
+                       mmu->ff0f |= 0x02;       
                     }
                     break;
                 }
@@ -283,16 +292,15 @@ void PPU::cycle(uint64_t cycles) {
             //         windowLabel->setPixmap(QPixmap::fromImage(*windowImage));
             //     }
             //     MODE = PPU_MODE::_1_VBLANK;
-            //     mmu->ffff |= 0x01;
+            //     mmu->ff0f |= 0x01;
             // }
             // if (MODE_1_VBLANK_INTERRUPT) {
-            //     mmu->ffff |= 0x02;       
+            //     mmu->ff0f |= 0x02;       
             // }
         }
     }
 } 
 
-#ifndef DEBUG
 void PPU::renderLine(uint8_t ly) {
 
     bool *revalidate;
@@ -360,7 +368,6 @@ void PPU::renderLine(uint8_t ly) {
     // displayLabel->setPixmap(QPixmap::fromImage(*composite).scaled(displayLabel->size(), Qt::KeepAspectRatio));
 
 }
-#endif
 
 
 void PPU::cacheImage(int bank, QImage *dst, PPU_LAYER layer) {
@@ -368,7 +375,6 @@ void PPU::cacheImage(int bank, QImage *dst, PPU_LAYER layer) {
     int base = (ADDRESSING_MODE == BG_WINDOW_TILE_AREA::_8800_97FF ? 0x1000 : 0x0000);
     bool sign = ADDRESSING_MODE == BG_WINDOW_TILE_AREA::_8800_97FF;
 
-    #ifndef DEBUG
     QImage *result;
     for (uint8_t row = 0; row < 32; ++row) {
         for (uint8_t col = 0; col < 32; ++col) {
@@ -390,7 +396,6 @@ void PPU::cacheImage(int bank, QImage *dst, PPU_LAYER layer) {
             delete result;
         }
     }
-    #endif
 
     // backgroundLabel->setPixmap(QPixmap::fromImage(*backgroundImage));
     // backgroundLabel->setPixmap(QPixmap::fromImage(*backgroundImage).scaled(backgroundLabel->size(), Qt::KeepAspectRatio));
@@ -419,7 +424,6 @@ QRgb rgb(uint8_t v, bool transparency) {
     }
 }
 
-#ifndef DEBUG
 QImage* PPU::generate8(uint16_t address, uint8_t palette, bool t) {
 
     QImage *result = new QImage(8, 8, QImage::Format::Format_ARGB32);
@@ -439,7 +443,6 @@ QImage* PPU::generate8(uint16_t address, uint8_t palette, bool t) {
     return result;
 
 }
-#endif
 
 
 void PPU::initiateOAMTransfer(uint8_t addr_half) {
@@ -468,7 +471,6 @@ void PPU::renderSprites(uint8_t ly) {
     }
 
     // Move the flipping to the precomputing
-    #ifndef DEBUG
     for (auto entry : show) {
         QImage sprite = *oam_cache[entry];
         uint8_t flags = mmu->read(0xFE00 | (entry * 4) + 3);
@@ -486,12 +488,10 @@ void PPU::renderSprites(uint8_t ly) {
             composite->setPixel(spritex + j, ly, sprite.pixel(j, ly - spritey));
         }
     }
-    #endif
 }
 
 void PPU::computeOAM() {
 
-    #ifndef DEBUG
     for (int i = 0; i < 40; ++i) {
         if (oam_cache.at(i) != nullptr) {
             delete oam_cache[i]; 
@@ -503,9 +503,11 @@ void PPU::computeOAM() {
     for (auto i = 0; i < 40; ++i) {
         flags = mmu->read(0xFE00 | (i * 4) + 3);
         oam_cache[i] = generate8(mmu->read(0xFE00 | (i * 4) + 2) * 16, ((flags & 0x10) == 0 ? ff48 : ff49), true);
+
+        #ifndef DEBUG
         emit updateTile(oam_cache[i], i, PPU_LAYER::L_SPRITE);
+        #endif
     }
-    #endif
 
     needOAMRevalidation = false;
 }

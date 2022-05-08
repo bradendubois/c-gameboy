@@ -1,8 +1,9 @@
 #ifndef GAMEBOY_H
 #define GAMEBOY_H
 
-#include <vector>
 #include <iostream>
+#include <set>
+#include <vector>
 
 #include <QGraphicsView>
 #include <QVBoxLayout>
@@ -13,15 +14,21 @@
 #include <QThread>
 
 class CPU;
+class MMU;
 class PPU;
-class Timer;
+struct Breakpoint;
 
-#include "include/cpu.h"
+#ifdef DEBUG
+#include "include/other/testing.h"
+#else
+#include "include/gui/gui_debug.h"
+#endif
+
 #include "include/mmu.h"
-#include "include/cartridge.h"
 #include "include/ppu.h"
-#include "include/gui_debug.h"
-#include "include/timer.h"
+#include "include/registers.h"
+
+#include "include/other/constants.h"
 
 #ifdef DEBUG
 class Gameboy {
@@ -31,16 +38,25 @@ class Gameboy: public QVBoxLayout {
 #endif
 
     public:
-        #ifndef DEBUG
-        Gameboy(QWidget *parent = nullptr);
-        #endif
-        Gameboy();
+        Gameboy(
+            #ifndef DEBUG
+            QWidget *parent = nullptr
+            #endif
+        );
         ~Gameboy();
 
-        void initialize(std::string romPath);
-        std::vector<uint8_t> mooneye();
+        void initialize(const GAMEBOY_MODEL MODEL, const std::string &romPath);
+        void run();
 
+        #ifdef DEBUG
+        void addBreakpoint(Breakpoint b);        
+        #endif
+
+        Registers* registers();
+
+        CPU *cpu;
         MMU *mmu;
+
 
     #ifndef DEBUG
     signals:
@@ -59,15 +75,13 @@ class Gameboy: public QVBoxLayout {
         void slot_updateTile(QImage *img, uint8_t n, PPU_LAYER layer);
     #endif
 
-    protected:
-        void run();
-
     private:
         friend class MMU;
         friend class PPU;
 
         bool checkCycleCount;
         int cycleCount;
+        GAMEBOY_MODEL model;
 
     #ifndef DEBUG
     private slots:

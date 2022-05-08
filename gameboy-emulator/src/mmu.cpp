@@ -1,7 +1,12 @@
 #include <stdint.h>
 
+#ifndef DEBUG
+#include "include/gui/gui_breakpoints.h"
+#endif
+
+#include "include/other/constants.h"
+
 #include "include/cpu.h"
-#include "include/gui_breakpoints.h"
 #include "include/mmu.h"
 
 #include "include/mbcs/mbc.h"
@@ -12,55 +17,59 @@
 
 
 MMU::~MMU() {
-    // std::cout << "Deleting Cartridge" << std::endl;
+    std::cout << "Deleting Cartridge" << std::endl;
     delete cartridge;
-    // std::cout << "Deleting CPU" << std::endl;
-    delete cpu;
-    // std::cout << "Deleting PPU" << std::endl;
+    std::cout << "Deleting PPU" << std::endl;
     delete ppu;
-    // std::cout << "Deleting Joypad" << std::endl;
+    std::cout << "Deleting Joypad" << std::endl;
     delete joypad;
-    // std::cout << "Deleting Serial" << std::endl;
+    std::cout << "Deleting Serial" << std::endl;
     delete serial;
-    // std::cout << "Deleting Sound" << std::endl;
+    std::cout << "Deleting Sound" << std::endl;
     delete sound;
-    // std::cout << "Done MMU Delete" << std::endl;
+    std::cout << "Done MMU Delete" << std::endl;
 };
 
 #ifdef DEBUG
-MMU::MMU(std::vector<uint8_t> *data)
+MMU::MMU(CPU *cpu, std::vector<uint8_t> *data): cpu{cpu}
 #else
-MMU::MMU(QObject *parent, std::vector<uint8_t> *data): QObject(parent)
+MMU::MMU(QObject *parent, std::vector<uint8_t> *data, GAMEBOY_MODEL model): QObject(parent)
 #endif
 {
-
-    ff0f = 0xE1;
-    ffff = 0;
-
     cartridge = new Cartridge(data);
-    cpu = new CPU(this);
     ppu = new PPU(this);
     timer = new Timer(this);
     joypad = new Joypad(this);
     serial = new Serial(this);
     sound = new Sound(this);
 
-    ff0f = 0xE1;
-    ffff = 0;
-
     w_ram = std::vector<uint8_t>(W_RAM_SIZE, 0);
     h_ram = std::vector<uint8_t>(H_RAM_SIZE, 0);
     oam = std::vector<uint8_t>(OAM_SIZE, 0);
 
-    // QObject::connect(&w, &MainWindow::pressed, &j, &Joypad::receivePress);
+}
+
+void MMU::initialize(GAMEBOY_MODEL model)
+{
+    timer->initialize(model);
+
+    // Initialize all default values that apply to most models
+    for (auto [address, value]: HARDWARE_REGISTER_DEFAULTS) {
+        write(address, value);
+    }
+
+    for (auto [address, value]: HARDWARE_REGISTER_VARIANTS[model]) {
+        write(address, value);
+    }
 }
 
 uint8_t MMU::read(uint16_t address) {
-    if (watchReads.contains(address)) {
-        #ifndef DEBUG
-        emit accessHalt(ADDRESS_ACCESS::READ, address);
-        #endif
-    }
+    // if (watchReads.contains(address)) {
+    //     #ifndef DEBUG
+    //     emit accessHalt(ADDRESS_ACCESS::READ, address);
+    //     #endif
+    // }
+
     switch (address) {
         case 0x0000 ... 0x7FFF:
             return cartridge->mbc->read(address);
@@ -93,7 +102,8 @@ uint8_t MMU::read(uint16_t address) {
             }
         }
         case 0xFF80 ... 0xFFFE:
-            return h_ram[address & 0xFF];
+            return h_ram[address - 0xFF80];
+            // return h_ram[address & 0x00FF];
         case 0xFFFF:
             return ffff;
 
@@ -158,18 +168,17 @@ void MMU::write(uint16_t address, uint8_t value) {
                     break;
                 case 0xFF51 ... 0xFF70:
                     break;
-                case 0xFFFF:
-                    ffff = value;
-                    break;
                 default:
                     return;
             }
             break;
         }
         case 0xFF80 ... 0xFFFE:
-            h_ram[address & 0xFF] = value;
+            h_ram[address - 0xFF80] = value;
+            // h_ram[address & 0x00FF] = value;
             break;
         case 0xFFFF ... 0xFFFF:
+            ffff = value;
             break;
 
         default:
@@ -179,15 +188,37 @@ void MMU::write(uint16_t address, uint8_t value) {
     }
 }
 
-void MMU::watchAddress(ADDRESS_ACCESS r, uint16_t address) {
-    switch (r) {
-        case ADDRESS_ACCESS::READ:
-            watchReads.insert(address);
-            break;
-        case ADDRESS_ACCESS::WRITE:
-            watchWrites.insert(address);
+// void MMU::watch(HARDWARE_PARAMETER h, uint16_t address, uint8_t value, ACCESS_TIME t)
+// {
+    
+// }
+
+void MMU::debug(Breakpoint b)
+{
+    switch (b.param) {
+        case DEBUG_PARAMETER::SERIAL_WRITE:
+            serial->debug(b);
             break;
         default:
-            break;
+            std::cerr << "Incorrect parameters for this debug type" << std::endl;
+            break;    
     }
 }
+
+void MMU::cycle(uint64_t cycles)
+{
+    timer->cycle(cycles);
+}
+
+// void MMU::watchAddress(ADDRESS_ACCESS r, uint16_t address) {
+//     switch (r) {
+//         case ADDRESS_ACCESS::READ:
+//             watchReads.insert(address);
+//             break;
+//         case ADDRESS_ACCESS::WRITE:
+//             watchWrites.insert(address);
+//             break;
+//         default:
+//             break;
+//     }
+// }

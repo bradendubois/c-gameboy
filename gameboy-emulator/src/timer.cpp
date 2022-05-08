@@ -1,11 +1,12 @@
 #include "../include/timer.h"
 
-Timer::Timer(MMU *mmu): ff04(0x00), ff05(0x00), ff06(0x00), ff07(0x00), step(0), divtank(0), timtank(0), enabled(false) {
-    mmu->timer = this;
+Timer::Timer(MMU *mmu): mmu(mmu), ff04(0x00), ff05(0x00), ff06(0x00), ff07(0x00), step(0), divtank(0), timtank(0), enabled(false)
+{
+
 }
 
-void Timer::advanceCycles(uint64_t cycles) {
-    
+void Timer::cycle(uint64_t cycles) {
+
     divtank += cycles;
     if (divtank < 256) {
         ff04 += divtank / 256;
@@ -18,7 +19,7 @@ void Timer::advanceCycles(uint64_t cycles) {
             ff05 += timtank / step;
             timtank %= step;
             if (ff05 == 0) {
-                mmu->ffff |= 0x04;
+                mmu->ff0f |= 0x04;
             }
         }
     }
@@ -27,7 +28,7 @@ void Timer::advanceCycles(uint64_t cycles) {
 void Timer::write(uint16_t address, uint8_t value) {
     switch (address) {
         case 0xFF04:
-            ff04 = value;
+            ff04 = 0;
             return;
         case 0xFF05:
             ff05 = value;
@@ -53,9 +54,7 @@ void Timer::write(uint16_t address, uint8_t value) {
                     return;
             }
         };
-        default:
-            std::cerr << "Impossible Timer address " << std::hex << (int) address << std::dec << std::endl;
-            return;
+        __builtin_unreachable();
     };
 }
 
@@ -70,8 +69,23 @@ uint8_t Timer::read(uint16_t address) {
         case 0xFF07: {
             return ff07;
         };
+        __builtin_unreachable();
         default:
-            std::cerr << "Impossible Timer address " << std::hex << (int) address << std::dec << std::endl;
             return 0;
     };
+}
+
+void Timer::initialize(GAMEBOY_MODEL MODEL)
+{
+    switch (MODEL) {
+        case GAMEBOY_MODEL::DMG0:
+            ff04 = 0x18;
+            return;
+        case GAMEBOY_MODEL::DMG:
+        case GAMEBOY_MODEL::MGB:
+            ff04 = 0xAB;
+            return;
+        default:
+            return;
+    }
 }

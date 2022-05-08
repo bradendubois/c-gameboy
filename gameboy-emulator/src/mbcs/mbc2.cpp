@@ -9,12 +9,9 @@
 MBC2::MBC2(std::vector<uint8_t> *data): MBC(data)
 {
     ram = std::vector<uint8_t>(0x200, 0);
-    mode = false;
     bank1 = 0x01;
-    bank2 = 0x00;
     ramg = false;
     computeRomOffset();
-    ram_offset = 0x0000;
 }
 
 uint8_t MBC2::read(uint16_t address) {
@@ -22,7 +19,7 @@ uint8_t MBC2::read(uint16_t address) {
         case 0x0000 ... 0x7FFF:
             return MBC::_read(address);
         case 0xA000 ... 0xBFFF:
-            if (!ramg) return 0xFF;
+            if (!ramg) return 0x0F;
             return ram[address & 0x01FF];
         default:
             std::cerr << "Impossible MBC address" << std::endl;
@@ -47,7 +44,7 @@ void MBC2::write(uint16_t address, uint8_t value) {
             if (!ramg) {
                 return;
             }
-            ram[address & 0x01FF] = value;
+            ram[address & 0x01FF] = value & 0x0F;
             break;
         }
             

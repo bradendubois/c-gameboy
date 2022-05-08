@@ -6,6 +6,7 @@
 #include "include/mbcs/mbc0.h"
 #include "include/mbcs/mbc1.h"
 #include "include/mbcs/mbc2.h"
+#include "include/mbcs/mbc5.h"
 
 
 static std::string stringSlice(std::vector<uint8_t> *buffer, int start, int end) {
@@ -24,6 +25,8 @@ MBC* createMBC(std::vector<uint8_t> *data) {
             return new MBC1(data);
         case 0x05 ... 0x06:
             return new MBC2(data);
+        case 0x19 ... 0x1E:
+            return new MBC5(data);
         default:
             std::cerr << "Unknown MBC type " << (int) data->at(0x147) << std::endl;
             exit(1);
@@ -46,4 +49,24 @@ Cartridge::Cartridge(std::vector<uint8_t> *c):
             header_checksum(c->at(0x014D)),
             global_checksum((c->at(0x014E) << 8) | c->at(0x014F)) {
 
+}
+
+bool Cartridge::containsNintendoLogo(uint16_t address)
+{
+    for (uint16_t o = 0; o < 48; ++o) {
+        if (mbc->read(address) != NINTENDO_LOGO_BYTES[o]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+uint16_t Cartridge::computeHeaderChecksum()
+{
+    uint16_t x = 0;
+    for (uint16_t i = 0x0134; i <= 0x014C; ++i) {
+        x = x - mbc->read(i) - 1;
+    }
+    return x;
 }

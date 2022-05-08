@@ -2,12 +2,16 @@
 #include <iostream>
 #include <iterator>
 #include <vector>
+#include <map>
 
 class MMU;
 
+#ifdef DEBUG
+#include "include/other/testing.h"
+#endif
+
 #include "include/gameboy.h"
 #include "include/cpu.h"
-#include "include/gui_debug.h"
 #include "include/mmu.h"
 #include "include/ppu.h"
 #include "include/timer.h"
@@ -25,14 +29,16 @@ class MMU;
 Gameboy::Gameboy(QWidget *parent): QVBoxLayout(parent), checkCycleCount(false), cycleCount(0) {
     connect(this, &Gameboy::ready, this, &Gameboy::updateLocalGUI);
 }
+#else
+Gameboy::Gameboy() { }
 #endif
 
+Gameboy::~Gameboy() {
+    delete cpu;
+    delete mmu;
+};
 
-Gameboy::Gameboy() { }
-
-Gameboy::~Gameboy() { delete mmu; };
-
-void Gameboy::initialize(std::string romPath) {
+void Gameboy::initialize(const GAMEBOY_MODEL MODEL, const std::string &romPath) {
 
     // std::cout << "Initialize " << std::endl;
     // TODO Add some cleanup here if swapping games
@@ -43,44 +49,18 @@ void Gameboy::initialize(std::string romPath) {
     // cartridge = new Cartridge(data);
     
     #ifdef DEBUG
-    mmu = new MMU(data);
+    cpu = new CPU();
+    mmu = new MMU(cpu, data);
+    cpu->mmu = mmu;
     #else
-    mmu = new MMU(this, data);
+    mmu = new MMU(this, data, GAMEBOY_MODEL::DMG0);
     connect(mmu->cpu, &CPU::updateRegister, this, &Gameboy::slot_updateRegister);
     connect(mmu->ppu, &PPU::updateTile, this, &Gameboy::slot_updateTile);
 
     #endif
 
-    // Joypad
-    mmu->write(0xFF00, (uint8_t) 0xCF);
-
-    // Timer
-    mmu->write(0xFF0F, (uint8_t) 0x18);
-    mmu->write(0xFF05, (uint8_t) 0x00);
-    mmu->write(0xFF06, (uint8_t) 0x00);
-    mmu->write(0xFF07, (uint8_t) 0xF8);
-
-    // Interrupt Flag
-    mmu->write(0xFF0F, (uint8_t) 0xE1);
-
-    // PPU Initialization
-    // mmu->write(0xFF40, (uint8_t) 0x91);
-    mmu->write(0xFF40, (uint8_t) (0x91 | 0x02));
-    mmu->write(0xFF41, (uint8_t) 0x81);
-    mmu->write(0xFF42, (uint8_t) 0x00);
-    mmu->write(0xFF43, (uint8_t) 0x00);
-    // mmu->write(0xFF44, (uint8_t) 0x91);
-    mmu->write(0xFF44, (uint8_t) 0x00);
-    mmu->write(0xFF45, (uint8_t) 0x00);
-    mmu->write(0xFF46, (uint8_t) 0xFF);
-    mmu->write(0xFF47, (uint8_t) 0xFC);
-    mmu->write(0xFF47, (uint8_t) 0x1B);
-    mmu->write(0xFF48, (uint8_t) 0x1B);
-    mmu->write(0xFF49, (uint8_t) 0x1B);
-    mmu->write(0xFF4A, (uint8_t) 0x00);
-    mmu->write(0xFF4B, (uint8_t) 0x00);
-    mmu->write(0xFF4D, (uint8_t) 0xFF);
-    mmu->write(0xFF4F, (uint8_t) 0xFF);
+    cpu->initialize(MODEL, mmu->cartridge->computeHeaderChecksum());
+    mmu->initialize(MODEL);
 
     // std::cout << "initialized " << std::endl;
 
@@ -146,31 +126,39 @@ void Gameboy::initialize(std::string romPath) {
 }
 
 void Gameboy::run() {
-    // while (!cpu->halted && (!checkCycleCount || cycleCount > 0)) {
-    while (!mmu->cpu->halted) {
-        auto v = mmu->cpu->cycle();
+    // while (!mmu->cpu->halted && (!checkCycleCount || cycleCount > 0)) {
+    while (!cpu->halted) {
+        auto v = cpu->cycle();
+        mmu->cycle(v);
 
-        mmu->ppu->cycle(v);
-        if (checkCycleCount && (cycleCount > 0)) {
-            --cycleCount;
-        }
+        // if (checkCycleCount && (cycleCount > 0)) {
+        //     --cycleCount;
+        // }
 
-        if (mmu->cpu->cycles % 10000 == 0) {
-            QTime dieTime= QTime::currentTime().addMSecs(10);
-            while (QTime::currentTime() < dieTime)
-            QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
-        }
+        // if (cpu->cycles % 10000 == 0) {
+        //     QTime dieTime= QTime::currentTime().addMSecs(10);
+        //     while (QTime::currentTime() < dieTime)
+        //     QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+        // }
     }
 }
 
-std::vector<uint8_t> Gameboy::mooneye() {
-    while (!mmu->cpu->halted) {
-        auto v = mmu->cpu->cycle();        
-        mmu->ppu->cycle(v);
-    }
-    return {mmu->cpu->r._b, mmu->cpu->r._c, mmu->cpu->r._d, mmu->cpu->r._e, mmu->cpu->r._h, mmu->cpu->r._l};
+Registers* Gameboy::registers()
+{
+    return &cpu->r;
 }
 
+void Gameboy::addBreakpoint(Breakpoint b)
+{
+    switch (b.param) {
+        case DEBUG_PARAMETER::OPCODE_VALUE:
+            cpu->debug(b);
+            break;
+        default:
+            mmu->debug(b);
+            break;
+    }
+}
 
 #ifndef DEBUG
 void Gameboy::advanceCycles(uint64_t cycles) {

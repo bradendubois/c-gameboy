@@ -15,10 +15,15 @@
 #include <QStatusBar>
 #include <QActionGroup>
 
+#ifndef DEBUG
+#include "include/gui/gui_debug.h"
+#include "include/gui/gui_viewer.h"
+#endif
+
 #include "include/gameboy.h"
-#include "include/gui_debug.h"
 #include "include/mainwindow.h"
-#include "include/gui_viewer.h"
+
+
 #ifndef DEBUG
 MainWindow::MainWindow(char *rom): widget(new QWidget), layout(new QHBoxLayout) {
     
@@ -45,7 +50,7 @@ MainWindow::MainWindow(char *rom): widget(new QWidget), layout(new QHBoxLayout) 
     widget->setLayout(layout);
 
     if (rom != nullptr) {
-        emit selectedRom(std::string(rom));
+        emit selectedRom(GAMEBOY_MODEL::DMG0, std::string(rom));
     }
 }
 
@@ -63,7 +68,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent *e) {
 
 void MainWindow::setFile() {
     QString rom = QFileDialog::getOpenFileName(this, tr("Open Image"), "~", tr("ROM Files (*rom *gb"));
-    emit selectedRom(rom.toStdString());
+    emit selectedRom(GAMEBOY_MODEL::DMG0, rom.toStdString());
 }
 
 

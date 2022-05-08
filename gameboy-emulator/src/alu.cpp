@@ -135,12 +135,22 @@ void CPU::alu_add(uint8_t v) {
     r._a = result;
 }
 
+void CPU::alu_add(uint16_t v) {
+    uint16_t hl = r.hl();
+    uint16_t result = hl + v;
+    r.flag_h(((hl & 0x07FF) + (v & 0x07FF)) > 0x07FF);
+    r.flag_n(false);
+    r.flag_c(hl > (0xFFFF - v));
+    r.hl(result);
+}
+
 uint8_t CPU::alu_sub(uint8_t v, bool carry) {
     uint8_t c = (carry && r.flag_c()) ? 0x01 : 0x00;
-    uint8_t s = r._a - v;
+    uint8_t s = r._a - v - c;
     r.flag_z(s == 0);
     r.flag_n(true);
-    r.flag_h((((r._a & 0x0F) - (v & 0x0F) - c) & (0x0F + 1)) != 0);
+    // r.flag_h((((r._a & 0x0F) - (v & 0x0F) - c) & (0x0F + 1)) != 0);
+    r.flag_h((r._a & 0x0F) < ((v & 0x0F) + c));
     r.flag_c(((uint16_t) r._a) < ((uint16_t) v + (uint16_t) c));
     return s;
 }
@@ -185,15 +195,6 @@ void CPU::a_xor(uint8_t v) {
     r.flag_n(false);
     r.flag_h(false);
     r.flag_c(false);
-}
-
-uint16_t CPU::alu_add(uint16_t v) {
-    uint16_t hl = r.hl();
-    uint16_t result = hl + v;
-    r.flag_h(((hl & 0x07FF) + (v & 0x07FF)) > 0x07FF);
-    r.flag_n(false);
-    r.flag_c(hl > (0xFFFF - v));
-    r.hl(result);
 }
 
 void CPU::add_16_sp(uint8_t v) {

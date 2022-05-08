@@ -1,8 +1,8 @@
 #include "include/cpu.h"
 #include <iostream>
+#include "include/other/testing.h"
 
-
-CPU::CPU(MMU *mmu): r(Registers()), mmu(mmu), t(0), ime(IME::Disabled), hit(NOT_TRIGGERED) {
+CPU::CPU(): r(Registers()), t(0), ime(IME::Disabled), hit(NOT_TRIGGERED) {
     isr = ISR::INACTIVE;
     update();
     cycles = 0;
@@ -32,6 +32,7 @@ uint64_t CPU::cycle() {
     if (ime == IME::Enabled) {
         int n;
         for (int i = 0; i < 5; ++i) {
+            // std::cout << "interrupt!" << std::endl;
             n = (1 << i);
             if (n & mmu->ff0f & mmu->ffff) {
                 ime = IME::Disabled;
@@ -49,23 +50,25 @@ uint64_t CPU::cycle() {
 
     cycles++;
 
-    // if (r._pc == 0x00) {
-    // if (cycles == 6300) {
-        // exit(0);
-    // }
-
     auto code = byte();
+
+    // std::cout << hexout(4, (uint16_t) code) << " " << hexout(4, r.af()) << std::endl;
+    // if (cycles == 3000000) exit(0);
+    // if (code == 0x40) {
+
+    if (cycles == 5000000 || opcodeWatch.contains(code))
+    {
+        // exit(0);
+        halted = true;
+        return 0;
+    }
 
     // std::cout << std::dec <<  (int) cycles << " --- " << std::hex << (int) code << std::dec << std::endl;
     // std::cout << std::hex << (int) code << std::dec << std::endl;
     // std::cout << r.toString() << std::endl;
 
-
     auto v = opcode(code);
-    if (code == 0x40) {
-        halted = true;
-        // std::cout << "Halted" << std::endl;
-    }
+
     // TODO - change this to only emit the ones changed
     // update();
     return v;
@@ -95,3 +98,20 @@ void CPU::accessHaltSlot(ADDRESS_ACCESS r, uint16_t address) {
     emit accessHaltSignal(r, address);
 }
 #endif
+
+void CPU::debug(Breakpoint b)
+{
+    switch (b.param) {
+        case DEBUG_PARAMETER::OPCODE_VALUE:
+            opcodeWatch.insert(b.value);
+            break;
+        default:
+            std::cerr << "Impossible?" << std::endl;
+            break;
+    }
+}
+
+void CPU::initialize(GAMEBOY_MODEL model, uint16_t checksum)
+{
+    r.initialize(model, checksum);
+}

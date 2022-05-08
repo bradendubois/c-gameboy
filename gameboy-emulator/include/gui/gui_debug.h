@@ -11,9 +11,9 @@
 #include <QAbstractButton>
 #include <QPushButton>
 
-#include "include/gui_breakpoints.h"
-#include "include/gui_history.h"
-#include "include/gui_viewer.h"
+#include "include/gui/gui_breakpoints.h"
+#include "include/gui/gui_history.h"
+#include "include/gui/gui_viewer.h"
 
 enum REGISTER_POSITION {
     R_A,

@@ -10,7 +10,7 @@
 #include <QPushButton>
 #include <QLineEdit>
 
-#include "include/gui_history.h"
+#include "include/gui/gui_history.h"
 
 
 GuiHistory::GuiHistory(QWidget *parent): QWidget(parent), layout(new QVBoxLayout), l(new QLabel), history(new QTableWidget) {

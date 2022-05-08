@@ -55,7 +55,6 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             return 8;
         case 0x0F:
             r._a = rrc(r._a);
-            r.flag_n(false);
             return 4;
 
         /// Row 0x10-0x1F
@@ -107,7 +106,6 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             return 8;
         case 0x1F:
             r._a = rr(r._a);
-            r.flag_z(false);
             return 4;
 
         /// Row 0x20-0x2F
@@ -139,7 +137,6 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._h = byte();
             return 8;
         case 0x27: {
-            uint8_t adj = 0;
             bool carry = false;
             if (!r.flag_n()) {
                 if (r.flag_c() || (r._a > 0x99)) {
@@ -846,9 +843,8 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             // std::cout << "REG READ " << std::hex << (int) b << " " << std::dec << (int) read(0xFF00 | b) << std::endl;;
             r._a = read(0xFF00 | b);
             return 12;
-        
         }
-            case 0xF1:
+        case 0xF1:
             r.af(pop() & 0xFFF0);
             return 12;
         case 0xF2:
@@ -886,6 +882,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             return 16;
 
         default:
+            throw std::invalid_argument("Impossible opcode!");
             return -1;
     }
 }
@@ -1445,7 +1442,7 @@ __uint128_t CPU::opcode_cb(uint8_t opcode) {
             r._a = res(5, r._a);
             return 8;
 
-        /// UNIMPLEMENTED Row 0xB0-0xBF
+        /// Row 0xB0-0xBF
         case 0xB0:
             r._b = res(6, r._b);
             return 8;

@@ -1,4 +1,4 @@
-#include "include/gui_viewer.h"
+#include "include/gui/gui_viewer.h"
 
 #include <QTableWidget>
 #include <stdint.h>

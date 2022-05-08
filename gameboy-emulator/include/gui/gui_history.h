@@ -11,7 +11,7 @@
 #include <QAbstractButton>
 #include <QPushButton>
 
-#include "include/gui_breakpoints.h"
+#include "include/gui/gui_breakpoints.h"
 
 class GuiHistory: public QWidget {
 

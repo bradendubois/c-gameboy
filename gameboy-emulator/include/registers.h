@@ -7,21 +7,21 @@
 #include <QObject>
 
 #include <stdint.h>
+
+#include "include/gameboy.h"
+
 class Registers {
 
     public:
-        Registers(): 
-            _a((uint8_t) 0x01), _f((uint8_t) 0x00),
-            _b((uint8_t) 0xFF), _c((uint8_t) 0x13),
-            _d((uint8_t) 0x00), _e((uint8_t) 0xC1),
-            _h((uint8_t) 0x84), _l((uint8_t) 0x03),
-            _pc((uint16_t) 0x0100), _sp((uint16_t) 0xFFFE) {};
+        Registers() {};
+        void initialize(GAMEBOY_MODEL MODEL, uint16_t checksum);
 
         uint16_t af() { return (((uint16_t) _a) << 8) | ((uint16_t) _f); }
         uint16_t bc() { return (((uint16_t) _b) << 8) | ((uint16_t) _c); }
         uint16_t de() { return (((uint16_t) _d) << 8) | ((uint16_t) _e); }
         uint16_t hl() { return (((uint16_t) _h) << 8) | ((uint16_t) _l); }
         
+        // void af(uint16_t value) { _a = value >> 8; _f = 0xFF & value; std::cout << std::hex << (int) af() << std::dec << std::endl; }
         void af(uint16_t value) { _a = value >> 8; _f = 0xFF & value; }
         void bc(uint16_t value) { _b = value >> 8; _c = 0xFF & value; }
         void de(uint16_t value) { _d = value >> 8; _e = 0xFF & value; }

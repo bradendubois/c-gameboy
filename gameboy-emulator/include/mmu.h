@@ -8,17 +8,17 @@
 
 #include <QObject>
 
-class CPU;
-class PPU;
-class Timer;
-class Serial;
-class Joypad;
-class Sound;
+#ifdef DEBUG
+#include "include/other/testing.h"
+#else
+#include "include/gui/gui_breakpoints.h"
+#endif
+
+#include "include/gameboy.h"
+#include "include/other/constants.h"
 
 #include "include/cartridge.h"
 #include "include/cpu.h"
-#include "include/gameboy.h"
-#include "include/gui_breakpoints.h"
 #include "include/joypad.h"
 #include "include/mbcs/mbc.h"
 #include "include/ppu.h"
@@ -26,9 +26,12 @@ class Sound;
 #include "include/sound.h"
 #include "include/timer.h"
 
-constexpr uint16_t W_RAM_SIZE = 0x2000;
-constexpr uint16_t H_RAM_SIZE = 0x7E;
-constexpr uint16_t OAM_SIZE = 0xA0;
+class CPU;
+class PPU;
+class Timer;
+class Serial;
+class Joypad;
+class Sound;
 
 #ifdef DEBUG
 class MMU {
@@ -39,9 +42,9 @@ class MMU: public QObject {
 
     public:
         #ifdef DEBUG
-        MMU(std::vector<uint8_t> *data);
+        MMU(CPU *cpu, std::vector<uint8_t> *data);
         #else
-        MMU(QObject *parent, std::vector<uint8_t> *data);
+        MMU(QObject *parent, std::vector<uint8_t> *data, GAMEBOY_MODEL model);
         #endif
         ~MMU();
 
@@ -53,9 +56,13 @@ class MMU: public QObject {
 
         void write(uint16_t address, uint8_t value);
         void write(uint16_t address, uint16_t value);
-        void watchAddress(ADDRESS_ACCESS r, uint16_t address);
 
         std::vector<uint8_t> mooneye();
+
+        void initialize(GAMEBOY_MODEL model);
+        void cycle(uint64_t cycles);
+        void debug(Breakpoint b);
+
 
     #ifndef DEBUG
     signals:
@@ -66,6 +73,7 @@ class MMU: public QObject {
         friend class CPU;
         friend class PPU;
         friend class Timer;
+        friend class Serial;
         friend class Gameboy;
 
         CPU *cpu;
@@ -75,6 +83,8 @@ class MMU: public QObject {
         Serial *serial;
         Sound *sound;
         Cartridge *cartridge;
+
+        bool blargg;
 
     private:
 
@@ -86,9 +96,11 @@ class MMU: public QObject {
 
         std::set<uint16_t> watchReads;
         std::set<uint16_t> watchWrites;
+
+        std::set<std::tuple<uint16_t, uint8_t>> watchReadValues;
+        std::set<std::tuple<uint16_t, uint8_t>> watchWriteValues;
 };
 
 
-#include "include/ppu.h"
 
 #endif

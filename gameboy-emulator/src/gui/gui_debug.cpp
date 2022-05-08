@@ -20,9 +20,9 @@
 #include <QTableWidgetItem>
 #include <QVBoxLayout>
 
-#include "include/gui_debug.h"
-#include "include/gui_history.h"
-#include "include/gui_breakpoints.h"
+#include "include/gui/gui_debug.h"
+#include "include/gui/gui_history.h"
+#include "include/gui/gui_breakpoints.h"
 
 GuiRegisters::GuiRegisters(QWidget *parent): QTableWidget(parent) {
 

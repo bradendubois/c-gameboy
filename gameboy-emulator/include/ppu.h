@@ -4,35 +4,14 @@
 #include <QImage>
 #include <QGraphicsScene>
 #include <QObject>
-#include "include/gui_viewer.h"
+
+#ifndef DEBUG
+#include "include/gui/gui_viewer.h"
+#endif
+
+#include "include/other/constants.h"
+
 #include "include/mmu.h"
-
-constexpr uint8_t DISPLAY_W = 160;
-constexpr uint8_t DISPLAY_H = 144;
-
-constexpr uint16_t BACKGROUND_N = 256;
-
-enum TILE_MAP_AREA {
-    _9800_9BFF,
-    _9C00_9FFF
-};
-
-enum BG_WINDOW_TILE_AREA {
-    _8800_97FF,
-    _8000_8FFF
-};
-
-enum PPU_MODE {
-    _0_HBLANK = 0,
-    _1_VBLANK = 1,
-    _2_OAM_SEARCH = 2,
-    _3_OAM_TRANSFER = 3
-};
-
-enum BG_OR_WINDOW {
-    BG,
-    WINDOW
-};
 
 struct OAM_Entry {
     uint8_t y;
@@ -111,15 +90,11 @@ class PPU: public QObject {
 
         uint64_t dots;
 
-        #ifndef DEBUG
         void renderLine(uint8_t ly);
-        #endif
         void renderSprites(uint8_t ly);
         void cacheImage(int bank, QImage *dst, PPU_LAYER layer);
 
-        #ifndef DEBUG
         QImage* generate8(uint16_t address, uint8_t palette, bool useTransparency = false);
-        #endif
         // std::vector<QImage*> bg_cache;
 
         std::vector<QImage*> oam_cache;
