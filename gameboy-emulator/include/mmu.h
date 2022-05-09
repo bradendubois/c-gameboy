@@ -44,7 +44,7 @@ class MMU: public QObject {
         #ifdef DEBUG
         MMU(CPU *cpu, std::vector<uint8_t> *data);
         #else
-        MMU(QObject *parent, std::vector<uint8_t> *data, GAMEBOY_MODEL model);
+        MMU(CPU *cpu, QObject *parent, std::vector<uint8_t> *data, GAMEBOY_MODEL model);
         #endif
         ~MMU();
 

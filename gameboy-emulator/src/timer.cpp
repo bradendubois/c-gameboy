@@ -1,25 +1,35 @@
 #include "../include/timer.h"
 
-Timer::Timer(MMU *mmu): mmu(mmu), ff04(0x00), ff05(0x00), ff06(0x00), ff07(0x00), step(0), divtank(0), timtank(0), enabled(false)
+Timer::Timer(MMU *mmu): mmu(mmu)
 {
-
+    ff04 = 0x00;
+    ff05 = 0x00;
+    ff06 = 0x00;
+    ff07 = 0x00;
+    
+    step = 0;
+    divtank = 0;
+    timtank = 0;
+    
+    enabled = false;
 }
 
 void Timer::cycle(uint64_t cycles) {
 
     divtank += cycles;
-    if (divtank < 256) {
+    if (divtank >= 256) {
         ff04 += divtank / 256;
         divtank %= 256;
     }
 
     if (enabled) {
         timtank += cycles;
-        while (timtank > step) {
+        while (timtank >= step) {
             ff05 += timtank / step;
             timtank %= step;
             if (ff05 == 0) {
                 mmu->ff0f |= 0x04;
+                ff05 = ff06;
             }
         }
     }
@@ -55,6 +65,8 @@ void Timer::write(uint16_t address, uint8_t value) {
             }
         };
         __builtin_unreachable();
+        default:
+            std::cerr << "impossible" << std::endl;
     };
 }
 

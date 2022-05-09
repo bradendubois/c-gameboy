@@ -31,9 +31,9 @@ MMU::~MMU() {
 };
 
 #ifdef DEBUG
-MMU::MMU(CPU *cpu, std::vector<uint8_t> *data): cpu{cpu}
+MMU::MMU(CPU *cpu, std::vector<uint8_t> *data): cpu(cpu)
 #else
-MMU::MMU(QObject *parent, std::vector<uint8_t> *data, GAMEBOY_MODEL model): QObject(parent)
+MMU::MMU(CPU *cpu, QObject *parent, std::vector<uint8_t> *data, GAMEBOY_MODEL model): QObject(parent), cpu(cpu)
 #endif
 {
     cartridge = new Cartridge(data);
@@ -46,13 +46,10 @@ MMU::MMU(QObject *parent, std::vector<uint8_t> *data, GAMEBOY_MODEL model): QObj
     w_ram = std::vector<uint8_t>(W_RAM_SIZE, 0);
     h_ram = std::vector<uint8_t>(H_RAM_SIZE, 0);
     oam = std::vector<uint8_t>(OAM_SIZE, 0);
-
 }
 
 void MMU::initialize(GAMEBOY_MODEL model)
 {
-    timer->initialize(model);
-
     // Initialize all default values that apply to most models
     for (auto [address, value]: HARDWARE_REGISTER_DEFAULTS) {
         write(address, value);
@@ -61,6 +58,8 @@ void MMU::initialize(GAMEBOY_MODEL model)
     for (auto [address, value]: HARDWARE_REGISTER_VARIANTS[model]) {
         write(address, value);
     }
+
+    timer->initialize(model);
 }
 
 uint8_t MMU::read(uint16_t address) {
@@ -96,6 +95,8 @@ uint8_t MMU::read(uint16_t address) {
                 case 0xFF0F:
                     return ff0f;
                 case 0xFF40 ... 0xFF4B:
+                case 0xFF4D:
+                case 0xFF4F:
                     return ppu->read(address);
                 default:
                     return 0xFF;
@@ -103,7 +104,6 @@ uint8_t MMU::read(uint16_t address) {
         }
         case 0xFF80 ... 0xFFFE:
             return h_ram[address - 0xFF80];
-            // return h_ram[address & 0x00FF];
         case 0xFFFF:
             return ffff;
 
@@ -175,9 +175,8 @@ void MMU::write(uint16_t address, uint8_t value) {
         }
         case 0xFF80 ... 0xFFFE:
             h_ram[address - 0xFF80] = value;
-            // h_ram[address & 0x00FF] = value;
             break;
-        case 0xFFFF ... 0xFFFF:
+        case 0xFFFF:
             ffff = value;
             break;
 
@@ -188,10 +187,6 @@ void MMU::write(uint16_t address, uint8_t value) {
     }
 }
 
-// void MMU::watch(HARDWARE_PARAMETER h, uint16_t address, uint8_t value, ACCESS_TIME t)
-// {
-    
-// }
 
 void MMU::debug(Breakpoint b)
 {
@@ -207,6 +202,7 @@ void MMU::debug(Breakpoint b)
 
 void MMU::cycle(uint64_t cycles)
 {
+    ppu->cycle(cycles);
     timer->cycle(cycles);
 }
 

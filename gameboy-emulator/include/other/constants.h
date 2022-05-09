@@ -16,6 +16,19 @@ enum GAMEBOY_MODEL {
 };
 
 
+enum REGISTER {
+    R_A,
+    R_F,
+    R_B,
+    R_C,
+    R_D,
+    R_E,
+    R_H,
+    R_L,
+    R_SP,
+    R_PC
+};
+
 enum PPU_LAYER {
     L_SPRITE,
     L_WINDOW,

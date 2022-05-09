@@ -55,6 +55,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             return 8;
         case 0x0F:
             r._a = rrc(r._a);
+            r.flag_z(false);
             return 4;
 
         /// Row 0x10-0x1F
@@ -106,6 +107,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             return 8;
         case 0x1F:
             r._a = rr(r._a);
+            r.flag_z(false);
             return 4;
 
         /// Row 0x20-0x2F
@@ -186,7 +188,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r._l = byte();
             return 8;
         case 0x2F:
-            r._a = !r._a;
+            r._a = ~r._a;
             r.flag_h(true);
             r.flag_n(true);
             return 4;
@@ -208,7 +210,7 @@ __uint128_t CPU::opcode(uint8_t opcode) {
             r.hl(r.hl() - 1);
             return 8;
         case 0x33:
-            r._pc += 1;
+            r._sp += 1;
             return 8;
         case 0x34:
             write(r.hl(), inc(read(r.hl())));
@@ -1447,19 +1449,19 @@ __uint128_t CPU::opcode_cb(uint8_t opcode) {
             r._b = res(6, r._b);
             return 8;
         case 0xB1:
-            r._c = res(6, r._b);
+            r._c = res(6, r._c);
             return 8;
         case 0xB2:
-            r._d = res(6, r._b);
+            r._d = res(6, r._d);
             return 8;
         case 0xB3:
-            r._e = res(6, r._b);
+            r._e = res(6, r._e);
             return 8;
         case 0xB4:
-            r._h = res(6, r._b);
+            r._h = res(6, r._h);
             return 8;
         case 0xB5:
-            r._l = res(6, r._b);
+            r._l = res(6, r._l);
             return 8;
         case 0xB6:
             write(r.hl(), res(6, read(r.hl())));

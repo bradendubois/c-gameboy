@@ -48,9 +48,7 @@ class Gameboy: public QVBoxLayout {
         void initialize(const GAMEBOY_MODEL MODEL, const std::string &romPath);
         void run();
 
-        #ifdef DEBUG
         void addBreakpoint(Breakpoint b);        
-        #endif
 
         Registers* registers();
 
@@ -62,7 +60,7 @@ class Gameboy: public QVBoxLayout {
     signals:
         void ready();
 
-        void signal_updateRegister(REGISTER_POSITION r, uint16_t value);
+        void signal_updateRegister(REGISTER r, uint16_t value);
         void signal_updateTile(QImage *img, uint8_t n, PPU_LAYER layer);
 
     public slots:
@@ -71,7 +69,7 @@ class Gameboy: public QVBoxLayout {
         void removeBreakpointOn(ADDRESS_ACCESS accessType, uint16_t address);
         void accessHalt(ADDRESS_ACCESS r, uint16_t address);
 
-        void slot_updateRegister(REGISTER_POSITION r, uint16_t value);
+        void slot_updateRegister(REGISTER r, uint16_t value);
         void slot_updateTile(QImage *img, uint8_t n, PPU_LAYER layer);
     #endif
 

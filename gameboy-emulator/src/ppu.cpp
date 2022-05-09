@@ -29,19 +29,13 @@ PPU::PPU(MMU *mmu): QObject(mmu), mmu(mmu)
     #endif
 
     v_ram = std::vector<uint8_t>(0x2000, 0);
-    dots = 0;
     oam_cache = std::vector<QImage*>(40, nullptr);
+    dots = 0;
     
     needOAMRevalidation = true;
     needBackgroundRevalidation = true;
     needWindowRevalidation = true;
 
-    // ADDRESSING_MODE = BG_WINDOW_TILE_AREA::_8800_97FF;
-    // WINDOW_ENABLE = false;
-    // BACKGROUND_TMA = _9800_9BFF;
-    // PPU_ENABLED = true;
-    // OBJ_ENABLED = true;
-    
     #ifndef DEBUG
     composite = new QImage(160, 144, QImage::Format::Format_ARGB32);
     backgroundImage = new QImage(256, 256, QImage::Format::Format_ARGB32);
@@ -139,7 +133,7 @@ void PPU::write(uint16_t address, uint8_t value) {
             BG_WINDOW_ENABLE_PRIORITY = (value & 0x01) != 0;
             break;
         case 0xFF41:
-            ff41 = value & !0x04;
+            ff41 = value & ~0x04;
             LYC_LY_INTERRUPT = (value & 0x40) != 0;
             MODE_2_OAM_STAT_INTERRUPT = (value & 0x20) != 0;
             MODE_1_VBLANK_INTERRUPT = (value & 0x10) != 0;

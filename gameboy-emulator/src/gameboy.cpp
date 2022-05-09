@@ -6,9 +6,7 @@
 
 class MMU;
 
-#ifdef DEBUG
 #include "include/other/testing.h"
-#endif
 
 #include "include/gameboy.h"
 #include "include/cpu.h"
@@ -48,20 +46,20 @@ void Gameboy::initialize(const GAMEBOY_MODEL MODEL, const std::string &romPath) 
     
     // cartridge = new Cartridge(data);
     
-    #ifdef DEBUG
     cpu = new CPU();
+    #ifdef DEBUG
     mmu = new MMU(cpu, data);
-    cpu->mmu = mmu;
     #else
-    mmu = new MMU(this, data, GAMEBOY_MODEL::DMG0);
-    connect(mmu->cpu, &CPU::updateRegister, this, &Gameboy::slot_updateRegister);
+    mmu = new MMU(cpu, this, data, MODEL);
+    // connect(mmu->cpu, &CPU::updateRegister, this, &Gameboy::slot_updateRegister);
     connect(mmu->ppu, &PPU::updateTile, this, &Gameboy::slot_updateTile);
-
     #endif
 
+    cpu->mmu = mmu;
     cpu->initialize(MODEL, mmu->cartridge->computeHeaderChecksum());
     mmu->initialize(MODEL);
 
+    /**
     // std::cout << "initialized " << std::endl;
 
     // std::vector<uint8_t> a{0xFF, 0x00, 0x7E, 0xFF, 0x85, 0x81, 0x89, 0x83, 0x93, 0x85, 0xA5, 0x8B, 0xC9, 0x97, 0x7E, 0xFF};
@@ -119,6 +117,7 @@ void Gameboy::initialize(const GAMEBOY_MODEL MODEL, const std::string &romPath) 
     // }
 
     // ppu->initiateOAMTransfer(0xC0);
+    **/
 
     #ifndef DEBUG
     emit ready();
@@ -126,8 +125,8 @@ void Gameboy::initialize(const GAMEBOY_MODEL MODEL, const std::string &romPath) 
 }
 
 void Gameboy::run() {
-    // while (!mmu->cpu->halted && (!checkCycleCount || cycleCount > 0)) {
-    while (!cpu->halted) {
+    while (!cpu->halted && (!checkCycleCount || cycleCount > 0)) {
+    // while (!cpu->halted) {
         auto v = cpu->cycle();
         mmu->cycle(v);
 
@@ -200,7 +199,7 @@ void Gameboy::accessHalt(ADDRESS_ACCESS r, uint16_t address) {
 }
 
 
-void Gameboy::slot_updateRegister(REGISTER_POSITION r, uint16_t value) {
+void Gameboy::slot_updateRegister(REGISTER r, uint16_t value) {
     emit signal_updateRegister(r, value);
 }
 

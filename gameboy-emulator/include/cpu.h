@@ -15,6 +15,8 @@ class MMU;
 #include "include/mainwindow.h"
 #endif
 
+#include "include/other/testing.h"
+
 #include "include/mmu.h"
 #include "include/registers.h"
 
@@ -52,7 +54,7 @@ class CPU: public QObject {
 
     #ifndef DEBUG
     signals:
-        void updateRegister(REGISTER_POSITION r, uint16_t value);
+        void updateRegister(REGISTER r, uint16_t value);
         void accessHaltSignal(ADDRESS_ACCESS r, uint16_t address);
 
     public slots:

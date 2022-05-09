@@ -1,15 +1,11 @@
 #include "include/cpu.h"
 #include <iostream>
-#include "include/other/testing.h"
 
 CPU::CPU(): r(Registers()), t(0), ime(IME::Disabled), hit(NOT_TRIGGERED) {
     isr = ISR::INACTIVE;
     update();
     cycles = 0;
     halted = false;
-    #ifndef DEBUG
-    connect(mmu, &MMU::accessHalt, this, &CPU::accessHaltSlot);
-    #endif
 }
 
 uint64_t CPU::cycle() {
@@ -37,7 +33,7 @@ uint64_t CPU::cycle() {
             if (n & mmu->ff0f & mmu->ffff) {
                 ime = IME::Disabled;
                 isr = ISR::NOPS;
-                mmu->ff0f &= !n;
+                mmu->ff0f &= ~n;
                 handler = 0x0040 | (i << 3);
                 return 0;
             }
@@ -114,4 +110,7 @@ void CPU::debug(Breakpoint b)
 void CPU::initialize(GAMEBOY_MODEL model, uint16_t checksum)
 {
     r.initialize(model, checksum);
+    #ifndef DEBUG
+    connect(mmu, &MMU::accessHalt, this, &CPU::accessHaltSlot);
+    #endif
 }

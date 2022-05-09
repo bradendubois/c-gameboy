@@ -106,7 +106,7 @@ GuiControls::GuiControls(QWidget *parent): QHBoxLayout(parent),
 }
 
 
-void GuiDebug::updateRegisters(REGISTER_POSITION r, uint16_t value) {
+void GuiDebug::updateRegisters(REGISTER r, uint16_t value) {
     switch (r) {
         case R_A:
             mr->updateRegister(0, 0, value);

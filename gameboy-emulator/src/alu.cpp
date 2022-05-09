@@ -252,11 +252,12 @@ void CPU::write(uint16_t address, uint16_t value) {
 ///
 
 uint8_t CPU::sla(uint8_t v) {
-    r.flag_c((v & 0x80) != 0);
-    r.flag_z((v << 1) == 0);
+    uint8_t s = v << 1;
+    r.flag_z(s == 0);
     r.flag_h(false);
     r.flag_n(false);
-    return v << 1;
+    r.flag_c((v & 0x80) != 0);
+    return s;
 }
 
 uint8_t CPU::sra(uint8_t v) {

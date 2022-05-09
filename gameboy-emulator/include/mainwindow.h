@@ -19,6 +19,7 @@
 #include "include/gui/gui_debug.h"
 
 
+class GuiDebug;
 class Gameboy;
 
 QT_BEGIN_NAMESPACE
@@ -54,11 +55,6 @@ class MainWindow : public QMainWindow
 
 
         void createMenuBar();
-
-        void createPlayerGroup();
-
-        void createActions();
-
 
         QMenuBar *menuBar;
         QAction *selectRom;
